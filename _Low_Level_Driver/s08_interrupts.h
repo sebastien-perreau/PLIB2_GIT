@@ -1,5 +1,5 @@
-#ifndef __DEF_INTERRUPT_MAPPING
-#define	__DEF_INTERRUPT_MAPPING
+#ifndef __DEF_INTERRUPTS
+#define	__DEF_INTERRUPTS
 
 typedef enum
 {
@@ -205,7 +205,6 @@ void irq_clr_flag(IRQ_SOURCE source);
 void irq_set_flag(IRQ_SOURCE source);
 uint32_t irq_get_flag(IRQ_SOURCE source);
 void irq_enable(IRQ_SOURCE source, bool enable);
-
 uint32_t irq_disable_interrupts(void);
 uint32_t irq_enable_interrupts(void);
 void irq_restore_interrupts(uint32_t status);

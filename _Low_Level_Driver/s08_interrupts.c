@@ -458,6 +458,19 @@ uint32_t irq_disable_interrupts(void)
     return status;
 }
 
+/*******************************************************************************
+ * Function: 
+ *      uint32_t irq_enable_interrupts(void)
+ * 
+ * Description:
+ *      This routine is used to enable ALL interrupts.
+ * 
+ * Parameters:
+ *      none
+ * 
+ * Return:
+ *      It returns the status of interruptions BEFORE to enable.
+ ******************************************************************************/
 uint32_t irq_enable_interrupts(void)
 {
     uint32_t status = 0;
@@ -465,6 +478,20 @@ uint32_t irq_enable_interrupts(void)
     return status;
 }
 
+/*******************************************************************************
+ * Function: 
+ *      void irq_restore_interrupts(uint32_t status)
+ * 
+ * Description:
+ *      This routine is used to restore (function of the parameter value) ALL 
+ *      interrupts. 
+ * 
+ * Parameters:
+ *      status      - true = enable / false = disable
+ * 
+ * Return:
+ *      none
+ ******************************************************************************/
 void irq_restore_interrupts(uint32_t status)
 {
     if(status & 0x00000001)
@@ -477,6 +504,19 @@ void irq_restore_interrupts(uint32_t status)
     }
 }
 
+/*******************************************************************************
+ * Function: 
+ *      void irq_enable_system_multi_vectore_interrupts(void)
+ * 
+ * Description:
+ *      Enables system wide multi-vectored interrupts. 
+ * 
+ * Parameters:
+ *      none
+ * 
+ * Return:
+ *      none
+ ******************************************************************************/
 void irq_enable_system_multi_vectore_interrupts(void)
 {
     uint32_t val;
@@ -489,6 +529,19 @@ void irq_enable_system_multi_vectore_interrupts(void)
     irq_enable_interrupts();
 }
 
+/*******************************************************************************
+ * Function: 
+ *      void irq_enable_system_single_vectore_interrupts(void)
+ * 
+ * Description:
+ *      Enables system wide single vectored interrupts. 
+ * 
+ * Parameters:
+ *      none
+ * 
+ * Return:
+ *      none
+ ******************************************************************************/
 void irq_enable_system_single_vectore_interrupts(void)
 {
     uint32_t val;
