@@ -3,3 +3,6 @@
 /PLIB.X/dist/
 /PLIB.X/debug/
 .DS_Store
+.git
+.gitattributes
+.gitignore
