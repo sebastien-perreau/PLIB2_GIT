@@ -438,6 +438,19 @@ void irq_enable(IRQ_SOURCE source, bool enable)
     p_irq->IEC[enable ? REG_SET : REG_CLR] = p_irq->MASK;
 }
 
+/*******************************************************************************
+ * Function: 
+ *      uint32_t irq_disable_interrupts(void)
+ * 
+ * Description:
+ *      This routine is used to disable ALL interrupts.
+ * 
+ * Parameters:
+ *      none
+ * 
+ * Return:
+ *      It returns the status of interruptions BEFORE to disable.
+ ******************************************************************************/
 uint32_t irq_disable_interrupts(void)
 {
     uint32_t status = 0;
