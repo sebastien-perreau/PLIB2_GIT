@@ -1,48 +1,46 @@
 /*********************************************************************
- *	TIMER modules (1, 2, 3, 4 and 5)
+ * 
+ *	Section 14 - TIMERS modules (1, 2, 3, 4 and 5)
+ * 
  *	Author : Sébastien PERREAU
  *
- *	Revision history	:
- *               15/11/2013      - Initial release
- *               06/10/2018      - Compatibility PLIB
- *                               - No dependencies to xc32 library
- *                               - Add comments   
- *               13/03/2019      - Bug fixed for get_period
- *                               - General improvements
  ********************************************************************/
 
 #include "../PLIB2.h"
 
 #warning "The X value of 'mTickCompare() >= X' can not exceed (2^32 - 1) "
 
-extern const TIMER_REGISTERS * TimerModules[];
-const TIMER_REGISTERS * TimerModules[] =
+extern const timers_registers_t * timers_registers[];
+const timers_registers_t * timers_registers[] =
 {
-    (TIMER_REGISTERS *)_TMR1_BASE_ADDRESS,
-    (TIMER_REGISTERS *)_TMR2_BASE_ADDRESS,
-    (TIMER_REGISTERS *)_TMR3_BASE_ADDRESS,
-    (TIMER_REGISTERS *)_TMR4_BASE_ADDRESS,
-    (TIMER_REGISTERS *)_TMR5_BASE_ADDRESS
+    (timers_registers_t *)_TMR1_BASE_ADDRESS,
+    (timers_registers_t *)_TMR2_BASE_ADDRESS,
+    (timers_registers_t *)_TMR3_BASE_ADDRESS,
+    (timers_registers_t *)_TMR4_BASE_ADDRESS,
+    (timers_registers_t *)_TMR5_BASE_ADDRESS
 };
 static timer_event_handler_t timer_event_handler[TIMER_NUMBER_OF_MODULES] = {NULL};
 
 /*******************************************************************************
-  Function:
-    void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint32_t config, float period_us)
-
-  Description:
-    This routine is used to initialize a timer module.
-
-  Parameters:
-    id          - The TIMER module you want to use.
-    evt_handler - The handler (function) to call when an interruption occurs.
-    config      - The TIMER configuration (TCON register).
-    period_us   - Set the period in micro-seconds for the timer. Time before back 
-                to zero and/or interrupt generation.
-  *****************************************************************************/
+ * Function:
+ *      void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint32_t config, float period_us)
+ *
+ * Description:
+ *      This routine is used to initialize a timer module.
+ *
+ * Parameters:
+ *      id              - The TIMER module you want to use.
+ *      evt_handler     - The handler (function) to call when an interruption occurs.
+ *      config          - The TIMER configuration (TCON register).
+ *      period_us       - Set the period in micro-seconds for the timer. Time before back 
+ *                      to zero and/or interrupt generation.
+ * 
+ * Return:
+ *      none
+ ******************************************************************************/
 void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint32_t config, float period_us)
 {
-    TIMER_REGISTERS * p_timer = (TIMER_REGISTERS *) TimerModules[id];
+    timers_registers_t * p_timer = (timers_registers_t *) timers_registers[id];
     float v_pr = 100000;
     uint16_t v_prescale = 1;
     
@@ -105,21 +103,21 @@ void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint
 }
 
 /*******************************************************************************
-  Function:
-    float timer_get_period_us(TIMER_MODULE id)
-
-  Description:
-    This routine returns the current period of a timer in micro-seconds.
-
-  Parameters:
-    id  - The TIMER module you want to use.
- 
-  Return:
-    The value (float value) corresponding to the period in micro-seconds.
-  *****************************************************************************/
+ * Function:
+ *      float timer_get_period_us(TIMER_MODULE id)
+ *
+ * Description:
+ *      This routine returns the current period of a timer in micro-seconds.
+ *
+ * Parameters:
+ *      id      - The TIMER module you want to use.
+ *
+ * Return:
+ *      The value (float value) corresponding to the period in micro-seconds.
+ ******************************************************************************/
 float timer_get_period_us(TIMER_MODULE id)
 {
-    TIMER_REGISTERS * p_timer = (TIMER_REGISTERS *) TimerModules[id];
+    timers_registers_t * p_timer = (timers_registers_t *) timers_registers[id];
 
     if(id == TIMER1)
     {
@@ -139,16 +137,19 @@ float timer_get_period_us(TIMER_MODULE id)
 }
 
 /*******************************************************************************
-  Function:
-    void timer_interrupt_handler(TIMER_MODULE id)
-
-  Description:
-    This routine is called when an interruption occurs. This interrupt 
-    handler calls the user _event_handler (if existing) otherwise do nothing.
-
-  Parameters:
-    id  - The TIMER module you want to use.
-  *****************************************************************************/
+ * Function:
+ *      void timer_interrupt_handler(TIMER_MODULE id)
+ *
+ * Description:
+ *      This routine is called when an interruption occurs. This interrupt 
+ *      handler calls the user _event_handler (if existing) otherwise do nothing.
+ *
+ * Parameters:
+ *      id  - The TIMER module you want to use.
+ * 
+ * Return:
+ *      none
+ ******************************************************************************/
 void timer_interrupt_handler(TIMER_MODULE id)
 {
     if (timer_event_handler[id] != NULL)

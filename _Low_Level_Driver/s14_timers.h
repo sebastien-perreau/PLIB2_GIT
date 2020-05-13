@@ -149,21 +149,21 @@ typedef enum
 
 typedef struct 
 {
-	volatile UINT32 TCON;
-    volatile UINT32 TCONCLR;
-    volatile UINT32 TCONSET;
-    volatile UINT32 TCONINV;
+	volatile uint32_t TCON;
+    volatile uint32_t TCONCLR;
+    volatile uint32_t TCONSET;
+    volatile uint32_t TCONINV;
 
-    volatile UINT32 TMR;
-    volatile UINT32 TMRCLR;
-    volatile UINT32 TMRSET;
-    volatile UINT32 TMRINV;
+    volatile uint32_t TMR;
+    volatile uint32_t TMRCLR;
+    volatile uint32_t TMRSET;
+    volatile uint32_t TMRINV;
 
-    volatile UINT32 PR;
-    volatile UINT32 PRCLR;
-    volatile UINT32 PRSET;
-    volatile UINT32 PRINV;
-} TIMER_REGISTERS;
+    volatile uint32_t PR;
+    volatile uint32_t PRCLR;
+    volatile uint32_t PRSET;
+    volatile uint32_t PRINV;
+} timers_registers_t;
 
 typedef void (*timer_event_handler_t)(uint8_t id);
 

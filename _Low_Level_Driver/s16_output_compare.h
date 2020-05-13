@@ -56,25 +56,25 @@ typedef enum
     OC_HIGH_LOW                 = (2 << _OC1CON_OCM_POSITION),      /* Compare1 forces OCx pin Low*/
     OC_LOW_HIGH                 = (1 << _OC1CON_OCM_POSITION),      /* Compare1 forces OCx pin High*/
     OC_MODE_OFF                 = (0 << _OC1CON_OCM_POSITION)       /* OutputCompare x Off*/
-} PWM_OCXCON_REGISTER;
+} OUTPUT_COMPARE_OCXCON;
 
 typedef struct 
 {
-    volatile UINT32 OCxCON;
-    volatile UINT32 OCxCONCLR;
-    volatile UINT32 OCxCONSET;
-    volatile UINT32 OCxCONINV;
+    volatile uint32_t OCxCON;
+    volatile uint32_t OCxCONCLR;
+    volatile uint32_t OCxCONSET;
+    volatile uint32_t OCxCONINV;
 
-    volatile UINT32 OCxR;
-    volatile UINT32 OCxRCLR;
-    volatile UINT32 OCxRSET;
-    volatile UINT32 OCxRINV;
+    volatile uint32_t OCxR;
+    volatile uint32_t OCxRCLR;
+    volatile uint32_t OCxRSET;
+    volatile uint32_t OCxRINV;
 
-    volatile UINT32 OCxRS;
-    volatile UINT32 OCxRSCLR;
-    volatile UINT32 OCxRSSET;
-    volatile UINT32 OCxRSINV;
-} OUTPUT_COMPARE_REGISTERS;
+    volatile uint32_t OCxRS;
+    volatile uint32_t OCxRSCLR;
+    volatile uint32_t OCxRSSET;
+    volatile uint32_t OCxRSINV;
+} output_compare_registers_t;
 
 void pwm_init(PWM_MODULE_ENABLE pwm_ids, uint32_t t2_freq_hz, uint32_t t3_freq_hz);
 void pwm_set_duty_cycle(PWM_MODULE pwm_id, uint8_t dc);
