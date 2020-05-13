@@ -1,15 +1,15 @@
-/*********************************************************************
+/********************************************************************
  * 
- *	PIC32 SPI modules - SPI1 / SPI2 / SPI3 / SPI4
+ *	Section 23 - SPI modules (1, 2, 3 and 4)
  * 
  *	Author : Sébastien PERREAU
  * 
-*********************************************************************/
+********************************************************************/
 
 #include "../PLIB2.h"
 
-extern const spi_registers_t * SpiModules[];
-const spi_registers_t * SpiModules[] =
+extern const spi_registers_t * spi_registers[];
+const spi_registers_t * spi_registers[] =
 {
     (spi_registers_t *)_SPI1_BASE_ADDRESS,
     (spi_registers_t *)_SPI2_BASE_ADDRESS,
@@ -67,7 +67,7 @@ static void spi_io_init(SPI_MODULE id, SPI_CONFIG config)
 
 static bool spi_is_rx_available(SPI_MODULE id)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     
     if(spiRegister->SPICON.ENHBUF)
     {
@@ -81,7 +81,7 @@ static bool spi_is_rx_available(SPI_MODULE id)
 
 static bool spi_is_tx_available(SPI_MODULE id)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
 
     if(spiRegister->SPICON.ENHBUF)
     {
@@ -95,7 +95,7 @@ static bool spi_is_tx_available(SPI_MODULE id)
 
 void spi_init(SPI_MODULE id, spi_event_handler_t evt_handler, IRQ_EVENT_TYPE event_type_enable, uint32_t freq_hz, SPI_CONFIG config)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     uint32_t dummy;
 
     spi_event_handler[id] = evt_handler;
@@ -117,26 +117,26 @@ void spi_init(SPI_MODULE id, spi_event_handler_t evt_handler, IRQ_EVENT_TYPE eve
 
 void spi_enable(SPI_MODULE id, bool enable)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];    
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];    
     spiRegister->SPICON.SPION = enable;
 }
 
 void spi_set_mode(SPI_MODULE id, SPI_CONFIG mode)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     spiRegister->SPICON.MODE16 = ((mode >> 10) & 0x00000001);
     spiRegister->SPICON.MODE32 = ((mode >> 11) & 0x00000001);
 }
 
 void spi_set_frequency(SPI_MODULE id, uint32_t freq_hz)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     spiRegister->SPIBRG = ((uint32_t) (PERIPHERAL_FREQ / freq_hz) >> 1) - 1;
 }
 
 bool spi_write_and_read_8(SPI_MODULE id, uint32_t data_w, uint8_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     
     if(spi_is_tx_available(id))
     {
@@ -150,7 +150,7 @@ bool spi_write_and_read_8(SPI_MODULE id, uint32_t data_w, uint8_t * data_r)
 
 bool spi_write_and_read_16(SPI_MODULE id, uint32_t data_w, uint16_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     
     if(spi_is_tx_available(id))
     {
@@ -164,7 +164,7 @@ bool spi_write_and_read_16(SPI_MODULE id, uint32_t data_w, uint16_t * data_r)
 
 bool spi_write_and_read_32(SPI_MODULE id, uint32_t data_w, uint32_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)SpiModules[id];
+    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     
     if(spi_is_tx_available(id))
     {
@@ -184,7 +184,7 @@ bool spi_write_and_read_32(SPI_MODULE id, uint32_t data_w, uint32_t * data_r)
  *      This routine is used to get the TX IRQ number of a SPI module.
  * 
  * Parameters:
- *      id: The SPI module you want to use.
+ *      id      - The SPI module you want to use.
  * 
  * Return:
  *      The constant TX IRQ number.
@@ -202,7 +202,7 @@ const uint8_t spi_get_tx_irq(SPI_MODULE id)
  *      This routine is used to get the RX IRQ number of a SPI module.
  * 
  * Parameters:
- *      id: The SPI module you want to use.
+ *      id      - The SPI module you want to use.
  * 
  * Return:
  *      The constant RX IRQ number.
@@ -220,7 +220,7 @@ const uint8_t spi_get_rx_irq(SPI_MODULE id)
  *      This routine is used to get the TX Register of a SPI module.
  * 
  * Parameters:
- *      id: The SPI module you want to use.
+ *      id      - The SPI module you want to use.
  * 
  * Return:
  *      The constant pointer of SPI TX REGISTER.
@@ -238,7 +238,7 @@ const void *spi_get_tx_reg(SPI_MODULE id)
  *      This routine is used to get the RX Register of a SPI module.
  * 
  * Parameters:
- *      id: The SPI module you want to use.
+ *      id      - The SPI module you want to use.
  * 
  * Return:
  *      The constant pointer of SPI RX REGISTER.
@@ -257,9 +257,9 @@ const void *spi_get_rx_reg(SPI_MODULE id)
  *      handler calls the user _event_handler (if existing) otherwise do nothing.
  * 
  * Parameters:
- *      id: The SPI module you want to use.
- *      evt_type: The type of event (RX, TX, FAULT...). See IRQ_EVENT_TYPE.
- *      data: The data (in case of a reception) read in the interruption.
+ *      id          - The SPI module you want to use.
+ *      evt_type    - The type of event (RX, TX, FAULT...). See IRQ_EVENT_TYPE.
+ *      data        - The data (in case of a reception) read in the interruption.
  * 
  * Return:
  *      none

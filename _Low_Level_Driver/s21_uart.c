@@ -1,15 +1,15 @@
-/*********************************************************************
-*	UART modules
-*	Author : Sébastien PERREAU
-*
-*	Revision history	:
-*		05/11/2018		- Initial release
-*********************************************************************/
+/********************************************************************
+ * 
+ *	Section 21 - UART modules (1, 2, 3, 4, 5 and 6)
+ * 
+ *	Author : Sébastien PERREAU
+ *
+ ********************************************************************/
 
 #include "../PLIB2.h"
 
-extern const uart_registers_t * UartModules[];
-const uart_registers_t * UartModules[] =
+extern const uart_registers_t * uart_registers[];
+const uart_registers_t * uart_registers[] =
 {
 	(uart_registers_t*)_UART1_BASE_ADDRESS,
 	(uart_registers_t*)_UART2_BASE_ADDRESS,
@@ -77,16 +77,16 @@ const void *p_uart_rx_reg[] =
  *      This routine is used to initialize an uart module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      evt_handler: The handler (function) to call when an interruption occurs.
- *      event_type_enable: The event(s) you want to enable by interruption (See. 
- *      IRQ_EVENT_TYPE). 
- *      baudrate: The desire baudrate in bit per second.
- *      enable_mode: Params follow the EXP_UART_ENABLE_MODE enumeration.
- *      config_mode: Params follow the EXP_UART_CONFIG_MODE enumeration.
- *      control_mode: Params follow the EXP_UART_LINE_CONTROL_MODE enumeration.
- *      fifo_mode: Params follow the EXP_UART_FIFO_MODE enumeration.
- *      address_detection: Params follow the EXP_UART_ADDRESS_DETECTION enumeration.
+ *      id                  - The UART module you want to use.
+ *      evt_handler         - The handler (function) to call when an interruption occurs.
+ *      event_type_enable   - The event(s) you want to enable by interruption (See. 
+ *                          IRQ_EVENT_TYPE). 
+ *      baudrate            - The desire baudrate in bit per second.
+ *      enable_mode         - Params follow the EXP_UART_ENABLE_MODE enumeration.
+ *      config_mode         - Params follow the EXP_UART_CONFIG_MODE enumeration.
+ *      control_mode        - Params follow the EXP_UART_LINE_CONTROL_MODE enumeration.
+ *      fifo_mode           - Params follow the EXP_UART_FIFO_MODE enumeration.
+ *      address_detection   - Params follow the EXP_UART_ADDRESS_DETECTION enumeration.
  * 
  * Return:
  *      none
@@ -124,15 +124,15 @@ void uart_init(     UART_MODULE id,
  *      This routine is used to enable the uart module and the RX/TX pins.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      enable_mode: Params follow the EXP_UART_ENABLE_MODE enumeration.
+ *      id              - The UART module you want to use.
+ *      enable_mode     - Params follow the EXP_UART_ENABLE_MODE enumeration.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_enable(UART_MODULE id, UART_ENABLE_MODE enable_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     if (enable_mode & UART_ENABLE)
     {
         p_uart->STASET = (enable_mode & (UART_ENABLE_RX_PIN | UART_ENABLE_TX_PIN));
@@ -162,15 +162,15 @@ void uart_enable(UART_MODULE id, UART_ENABLE_MODE enable_mode)
  *          - Selects the number of data bits, parity and stop bits
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      config_mode: Params follow the EXP_UART_CONFIG_MODE enumeration.
+ *      id              - The UART module you want to use.
+ *      config_mode     - Params follow the EXP_UART_CONFIG_MODE enumeration.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_set_params(UART_MODULE id, UART_CONFIG_MODE config_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     p_uart->MODECLR = (UART_CONFIG_MASK & 0x0000ffff);
     p_uart->STACLR = ((UART_CONFIG_MASK >> 16) & 0x0000ffff);
     p_uart->MODESET = (config_mode & 0x0000ffff);
@@ -194,15 +194,15 @@ void uart_set_params(UART_MODULE id, UART_CONFIG_MODE config_mode)
  *          - Selects the number of data bits, parity and stop bits
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      control_mode: Params follow the EXP_UART_LINE_CONTROL_MODE enumeration.
+ *      id              - The UART module you want to use.
+ *      control_mode    - Params follow the EXP_UART_LINE_CONTROL_MODE enumeration.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_set_line_control(UART_MODULE id, UART_LINE_CONTROL_MODE control_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     p_uart->MODECLR = UART_LINE_CONTROL_MASK;
     p_uart->MODESET = (control_mode & UART_LINE_CONTROL_MASK);
 }
@@ -215,15 +215,15 @@ void uart_set_line_control(UART_MODULE id, UART_LINE_CONTROL_MODE control_mode)
  *      This routine is used to set the type of interruption for Rx et Tx.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      fifo_mode: Params follow the EXP_UART_FIFO_MODE enumeration.
+ *      id              - The UART module you want to use.
+ *      fifo_mode       - Params follow the EXP_UART_FIFO_MODE enumeration.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_set_fifo(UART_MODULE id, UART_FIFO_MODE fifo_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     p_uart->STACLR = UART_FIFO_MASK;
     p_uart->STASET = (fifo_mode & UART_FIFO_MASK);
 }
@@ -236,16 +236,16 @@ void uart_set_fifo(UART_MODULE id, UART_FIFO_MODE fifo_mode)
  *      This routine is used to set the address when detection is enable.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      address: Set the address you want to detect.
- *      address_detection: Enable or disable the address detection.
+ *      id                  - The UART module you want to use.
+ *      address             - Set the address you want to detect.
+ *      address_detection   - Enable or disable the address detection.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_set_adress_detection(UART_MODULE id, uint8_t address, UART_ADDRESS_DETECTION address_detection)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     p_uart->STACLR = UART_ADDRESS_DETECTION_MASK;
     p_uart->STASET = (((uint32_t) address) << 16) | address_detection;
 }
@@ -261,15 +261,15 @@ void uart_set_adress_detection(UART_MODULE id, uint8_t address, UART_ADDRESS_DET
  *              store in a tab.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      baudrate: The desire baudrate in bit per second.
+ *      id          - The UART module you want to use.
+ *      baudrate    - The desire baudrate in bit per second.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void uart_set_baudrate(UART_MODULE id, uint32_t baudrate)
 {
-	uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+	uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     uint32_t v_baudrate;
     uint32_t v_source_clock = (PERIPHERAL_FREQ >> 1);
 
@@ -296,7 +296,7 @@ void uart_set_baudrate(UART_MODULE id, uint32_t baudrate)
  *      This routine is used to get the real baudrate for the selected UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The real baudrate in bit per second.
@@ -315,14 +315,14 @@ uint32_t uart_get_baudrate(UART_MODULE id)
  *      selected UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The status of the transmission (true = completed / false = on going).
  ******************************************************************************/
 bool uart_transmission_has_completed(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     return (_U1STA_TRMT_MASK == (p_uart->STA & _U1STA_TRMT_MASK));
 }
 
@@ -335,14 +335,14 @@ bool uart_transmission_has_completed(UART_MODULE id)
  *      selected UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The status of the tx buffer (true = ready / false = not ready).
  ******************************************************************************/
 bool uart_is_tx_ready(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     return (bool)(!(p_uart->STA & _U1STA_UTXBF_MASK));
 }
 
@@ -355,14 +355,14 @@ bool uart_is_tx_ready(UART_MODULE id)
  *      selected UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The status of the rx buffer (true = data available / false = data not available.
  ******************************************************************************/
 bool uart_is_rx_data_available(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     return (bool)(_U1STA_URXDA_MASK == (p_uart->STA & _U1STA_URXDA_MASK));
 }
 
@@ -381,14 +381,14 @@ bool uart_is_rx_data_available(UART_MODULE id)
  *      for the Break character is ignored. 
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The status of the break transmission (0: done / 1: not sent)
  ******************************************************************************/
 bool uart_send_break(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     if ((bool)(!(p_uart->STA & _U1STA_UTXBF_MASK)))
     {
         p_uart->STASET = _U1STA_UTXBRK_MASK;
@@ -406,15 +406,15 @@ bool uart_send_break(UART_MODULE id)
  *      This routine is used to send a data (8 bits or 9 bits).
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      data: The data (8 or 9 bits) to send.
+ *      id      - The UART module you want to use.
+ *      data    - The data (8 or 9 bits) to send.
  * 
  * Return:
  *      The status of the data transmission (0: done / 1: not sent)
  ******************************************************************************/
 bool uart_send_data(UART_MODULE id, uint16_t data)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     if ((bool)(!(p_uart->STA & _U1STA_UTXBF_MASK)))
     {
         p_uart->TX = data;
@@ -431,15 +431,15 @@ bool uart_send_data(UART_MODULE id, uint16_t data)
  *      This routine is used to get a data (8 bits or 9 bits).
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      p_data: A pointer to store the data receive.
+ *      id          - The UART module you want to use.
+ *      p_data      - A pointer to store the data receive.
  * 
  * Return:
  *      The status of the data reception (0: done / 1: not receive)
  ******************************************************************************/
 bool uart_get_data(UART_MODULE id, uint16_t *p_data)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) UartModules[id];
+    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     if ((bool)(_U1STA_URXDA_MASK == (p_uart->STA & _U1STA_URXDA_MASK)))
     {
         *p_data = (uint16_t) p_uart->RX;
@@ -456,7 +456,7 @@ bool uart_get_data(UART_MODULE id, uint16_t *p_data)
  *      This routine is used to get the TX IRQ number of a UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The constant TX IRQ number.
@@ -474,7 +474,7 @@ const uint8_t uart_get_tx_irq(UART_MODULE id)
  *      This routine is used to get the RX IRQ number of a UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The constant RX IRQ number.
@@ -492,7 +492,7 @@ const uint8_t uart_get_rx_irq(UART_MODULE id)
  *      This routine is used to get the TX Register of a UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The constant pointer of UART TX REGISTER.
@@ -510,7 +510,7 @@ const void *uart_get_tx_reg(UART_MODULE id)
  *      This routine is used to get the RX Register of a UART module.
  * 
  * Parameters:
- *      id: The UART module you want to use.
+ *      id      - The UART module you want to use.
  * 
  * Return:
  *      The constant pointer of UART RX REGISTER.
@@ -529,9 +529,9 @@ const void *uart_get_rx_reg(UART_MODULE id)
  *      handler calls the user _event_handler (if existing) otherwise do nothing.
  * 
  * Parameters:
- *      id: The UART module you want to use.
- *      evt_type: The type of event (RX, TX, ERROR...). See IRQ_EVENT_TYPE.
- *      data: The data (in case of a reception) read in the interruption.
+ *      id          - The UART module you want to use.
+ *      evt_type    - The type of event (RX, TX, ERROR...). See IRQ_EVENT_TYPE.
+ *      data        - The data (in case of a reception) read in the interruption.
  * 
  * Return:
  *      none
