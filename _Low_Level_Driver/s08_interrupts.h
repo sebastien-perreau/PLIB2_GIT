@@ -159,22 +159,6 @@ typedef enum
     REG_INV
 } _ENUM_REGISTER;
 
-typedef struct
-{
-    uint8_t                 priority;
-    uint8_t                 sub_priority;
-} IRQ_DATA_PRIORITY;
-
-typedef struct
-{
-    volatile uint32_t       *IFS;
-    volatile uint32_t       *IEC;
-    volatile uint32_t       *IPC;
-    volatile uint32_t       MASK;
-    volatile uint32_t       SUB_PRI_POS;
-    volatile uint32_t       PRI_POS;
-} IRQ_REGISTERS;
-
 typedef enum
 {
     IRQ_NONE                = 0x00,
@@ -189,18 +173,34 @@ typedef enum
     IRQ_UART_RX             = 0x02,
     IRQ_UART_TX             = 0x04
 } IRQ_EVENT_TYPE;
-            
-void irq_link_data_priority(const IRQ_DATA_PRIORITY *p_data_priority);
-IRQ_DATA_PRIORITY irq_change_notice_priority();
-IRQ_DATA_PRIORITY irq_adc10_priority();
-IRQ_DATA_PRIORITY irq_timer_priority(uint8_t id);
-IRQ_DATA_PRIORITY irq_dma_priority(uint8_t id);
-IRQ_DATA_PRIORITY irq_uart_priority(uint8_t id);
-IRQ_DATA_PRIORITY irq_spi_priority(uint8_t id);
-IRQ_DATA_PRIORITY irq_i2c_priority(uint8_t id);
-IRQ_DATA_PRIORITY irq_can_priority(uint8_t id);
 
-void irq_init(IRQ_SOURCE source, bool enable, IRQ_DATA_PRIORITY priority);
+typedef struct
+{
+    uint8_t                 priority;
+    uint8_t                 sub_priority;
+} irq_data_priority_t;
+
+typedef struct
+{
+    volatile uint32_t       *IFS;
+    volatile uint32_t       *IEC;
+    volatile uint32_t       *IPC;
+    volatile uint32_t       MASK;
+    volatile uint32_t       SUB_PRI_POS;
+    volatile uint32_t       PRI_POS;
+} irq_registers_t;
+            
+void irq_link_data_priority(const irq_data_priority_t *p_data_priority);
+irq_data_priority_t irq_change_notice_priority();
+irq_data_priority_t irq_adc10_priority();
+irq_data_priority_t irq_timer_priority(uint8_t id);
+irq_data_priority_t irq_dma_priority(uint8_t id);
+irq_data_priority_t irq_uart_priority(uint8_t id);
+irq_data_priority_t irq_spi_priority(uint8_t id);
+irq_data_priority_t irq_i2c_priority(uint8_t id);
+irq_data_priority_t irq_can_priority(uint8_t id);
+
+void irq_init(IRQ_SOURCE source, bool enable, irq_data_priority_t priority);
 void irq_clr_flag(IRQ_SOURCE source);
 void irq_set_flag(IRQ_SOURCE source);
 uint32_t irq_get_flag(IRQ_SOURCE source);

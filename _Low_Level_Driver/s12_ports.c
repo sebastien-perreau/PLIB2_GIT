@@ -1,15 +1,15 @@
 /********************************************************************* 
- *	PORTS module 
+ * 
+ *	Section 12 - PORTS module 
+ * 
  *	Author : Sébastien PERREAU
  *
- *	Revision history	:
- *               14/03/2019      - Initial release
  ********************************************************************/
 
 #include "../PLIB2.h"
 
-extern const ports_registers_t * PortsModules[];
-const ports_registers_t * PortsModules[] =
+extern const ports_registers_t * ports_registers[];
+const ports_registers_t * ports_registers[] =
 {
 	(ports_registers_t*)_PORTA_BASE_ADDRESS,
 	(ports_registers_t*)_PORTB_BASE_ADDRESS,
@@ -61,9 +61,9 @@ void ports_reset_all_pins_input()
 {
     ports_registers_t * pPorts;
     uint8_t i;
-    for (i = 0 ; i < (sizeof(PortsModules)/sizeof(ports_registers_t)) ; i++)
+    for (i = 0 ; i < (sizeof(ports_registers)/sizeof(ports_registers_t)) ; i++)
     {
-        pPorts = (ports_registers_t *) PortsModules[i];
+        pPorts = (ports_registers_t *) ports_registers[i];
         pPorts->TRISSET =  0xffffffff;
         pPorts->LATCLR = 0xffffffff;
     }
@@ -82,7 +82,7 @@ void ports_reset_all_pins_input()
   *****************************************************************************/
 void ports_reset_pin_input(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     pPorts->TRISSET =  (uint32_t) (1 << io._indice);
     pPorts->LATCLR = (uint32_t) (1 << io._indice);
 }
@@ -100,7 +100,7 @@ void ports_reset_pin_input(_io_t io)
   *****************************************************************************/
 void ports_reset_pin_output(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     pPorts->TRISCLR =  (uint32_t) (1 << io._indice);
     pPorts->LATCLR = (uint32_t) (1 << io._indice);
 }
@@ -120,7 +120,7 @@ void ports_reset_pin_output(_io_t io)
   *****************************************************************************/
 bool ports_get_bit(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     return ((pPorts->PORT & (1 << io._indice)) >> io._indice);
 }
 
@@ -136,7 +136,7 @@ bool ports_get_bit(_io_t io)
   *****************************************************************************/
 void ports_set_bit(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     pPorts->LATSET = (uint32_t) (1 << io._indice);
 }
 
@@ -152,7 +152,7 @@ void ports_set_bit(_io_t io)
   *****************************************************************************/
 void ports_clr_bit(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     pPorts->LATCLR = (uint32_t) (1 << io._indice);
 }
 
@@ -168,7 +168,7 @@ void ports_clr_bit(_io_t io)
   *****************************************************************************/
 void ports_toggle_bit(_io_t io)
 {
-    ports_registers_t * pPorts = (ports_registers_t *) PortsModules[io._port - 1];
+    ports_registers_t * pPorts = (ports_registers_t *) ports_registers[io._port - 1];
     pPorts->LATINV = (uint32_t) (1 << io._indice);
 }
 

@@ -1,18 +1,15 @@
 /*********************************************************************
-*	Interrupt module
-*	Author : Sébastien PERREAU
-*
-*	Revision history	:
-*               15/11/2013      - Initial release
-*               14/11/2018      - Compatibility PLIB
-*                               - No dependencies to xc32 library
-*                               - Add comments   
-*********************************************************************/
+ * 
+ *	Section 08 - Interrupts module
+ * 
+ *	Author : Sébastien PERREAU
+ * 
+ ********************************************************************/
 
 #include "../PLIB2.h"
 
-const IRQ_DATA_PRIORITY *p_IrqDataPriority = NULL;
-const IRQ_REGISTERS IrqTab[] =
+const irq_data_priority_t *p_irq_data_priority = NULL;
+const irq_registers_t irq_tab[] =
 {
     {   &IFS0,  &IEC0,  &IPC0,  _IFS0_CTIF_MASK,        _IPC0_CTIS_POSITION,    _IPC0_CTIP_POSITION     },  // Core Timer Interrupt
 
@@ -147,7 +144,7 @@ const IRQ_REGISTERS IrqTab[] =
 
 /*******************************************************************************
  * Function: 
- *      void irq_link_data_priority(const IRQ_DATA_PRIORITY *p_data_priority)
+ *      void irq_link_data_priority(const irq_data_priority_t *p_data_priority)
  * 
  * Description:
  *      This routine is used to set a link with the constant IRQ_DATA_PRIORITY 
@@ -157,19 +154,19 @@ const IRQ_REGISTERS IrqTab[] =
  *      in PLIB. 
  * 
  * Parameters:
- *      *p_data_priority: The constant IRQ_DATA_PRIORITY pointer defines in config.c
+ *      *p_data_priority    - The constant IRQ_DATA_PRIORITY pointer defines in config.c
  * 
  * Return:
  *      none
  ******************************************************************************/
-void irq_link_data_priority(const IRQ_DATA_PRIORITY *p_data_priority)
+void irq_link_data_priority(const irq_data_priority_t *p_data_priority)
 {
-    p_IrqDataPriority = p_data_priority;
+    p_irq_data_priority = p_data_priority;
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_change_notice_priority()
+ *      irq_data_priority_t irq_change_notice_priority()
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
@@ -179,17 +176,17 @@ void irq_link_data_priority(const IRQ_DATA_PRIORITY *p_data_priority)
  *      none
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_change_notice_priority()
+irq_data_priority_t irq_change_notice_priority()
 {
-    return p_IrqDataPriority[0];
+    return p_irq_data_priority[0];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_adc10_priority()
+ *      irq_data_priority_t irq_adc10_priority()
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
@@ -199,153 +196,153 @@ IRQ_DATA_PRIORITY irq_change_notice_priority()
  *      none
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_adc10_priority()
+irq_data_priority_t irq_adc10_priority()
 {
-    return p_IrqDataPriority[1];
+    return p_irq_data_priority[1];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_timer_priority(uint8_t id)
+ *      irq_data_priority_t irq_timer_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the TIMER module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (TIMER1..TIMER5)
+ *      id          - The desire module (TIMER1..TIMER5)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_timer_priority(uint8_t id)
+irq_data_priority_t irq_timer_priority(uint8_t id)
 {
-    return p_IrqDataPriority[2 + id];
+    return p_irq_data_priority[2 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_dma_priority(uint8_t id)
+ *      irq_data_priority_t irq_dma_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the DMA module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (DMA0..DMA7)
+ *      id          - The desire module (DMA0..DMA7)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_dma_priority(uint8_t id)
+irq_data_priority_t irq_dma_priority(uint8_t id)
 {
-    return p_IrqDataPriority[7 + id];
+    return p_irq_data_priority[7 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_uart_priority(uint8_t id)
+ *      irq_data_priority_t irq_uart_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the UART module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (UART1..UART6)
+ *      id          - The desire module (UART1..UART6)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_uart_priority(uint8_t id)
+irq_data_priority_t irq_uart_priority(uint8_t id)
 {
-    return p_IrqDataPriority[15 + id];
+    return p_irq_data_priority[15 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_spi_priority(uint8_t id)
+ *      irq_data_priority_t irq_spi_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the SPI module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (SPI1..SPI4)
+ *      id          - The desire module (SPI1..SPI4)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_spi_priority(uint8_t id)
+irq_data_priority_t irq_spi_priority(uint8_t id)
 {
-    return p_IrqDataPriority[21 + id];
+    return p_irq_data_priority[21 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_i2c_priority(uint8_t id)
+ *      irq_data_priority_t irq_i2c_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the I2C module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (I2C1..I2C5)
+ *      id          - The desire module (I2C1..I2C5)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_i2c_priority(uint8_t id)
+irq_data_priority_t irq_i2c_priority(uint8_t id)
 {
-    return p_IrqDataPriority[25 + id];
+    return p_irq_data_priority[25 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      IRQ_DATA_PRIORITY irq_can_priority(uint8_t id)
+ *      irq_data_priority_t irq_can_priority(uint8_t id)
  * 
  * Description:
  *      This routine is used to get the priority and sub-priority define by the 
  *      user (in the project - upper layer) for the CAN module(s) in PLIB.
  * 
  * Parameters:
- *      id: The desire module (CAN1 or CAN2)
+ *      id          - The desire module (CAN1 or CAN2)
  * 
  * Return:
- *      The IRQ_DATA_PRIORITY of the module (see the structure definition for
+ *      The irq_data_priority_t of the module (see the structure definition for
  *      more details).
  ******************************************************************************/
-IRQ_DATA_PRIORITY irq_can_priority(uint8_t id)
+irq_data_priority_t irq_can_priority(uint8_t id)
 {
-    return p_IrqDataPriority[30 + id];
+    return p_irq_data_priority[30 + id];
 }
 
 /*******************************************************************************
  * Function: 
- *      void irq_init(IRQ_SOURCE source, bool enable, IRQ_DATA_PRIORITY priority)
+ *      void irq_init(IRQ_SOURCE source, bool enable, irq_data_priority_t priority)
  * 
  * Description:
  *      This routine is used to initialize the interruption of a module (IRQ_SOURCE).
  * 
  * Parameters:
- *      source: The IRQ_SOURCE of the module. 
- *      enable: true to enable or false to disable interruption for the module.
- *      priority: The IRQ_DATA_PRIORITY of the module. It is a concatenation of
- *                priority and sub-priority. 
+ *      source      - The IRQ_SOURCE of the module. 
+ *      enable      - true to enable or false to disable interruption for the module.
+ *      priority    - The irq_data_priority_t of the module. It is a concatenation of
+ *                  priority and sub-priority. 
  * 
  * Return:
  *      none
  ******************************************************************************/
-void irq_init(IRQ_SOURCE source, bool enable, IRQ_DATA_PRIORITY priority)
+void irq_init(IRQ_SOURCE source, bool enable, irq_data_priority_t priority)
 {
-    IRQ_REGISTERS * p_irq = (IRQ_REGISTERS *)&IrqTab[source];
+    irq_registers_t * p_irq = (irq_registers_t *)&irq_tab[source];
     // Disable IRQ
     p_irq->IEC[REG_CLR] = p_irq->MASK;
     // Set priority
@@ -367,14 +364,14 @@ void irq_init(IRQ_SOURCE source, bool enable, IRQ_DATA_PRIORITY priority)
  *      This routine is used to clear the flag of a module (IRQ_SOURCE).
  * 
  * Parameters:
- *      source: The IRQ_SOURCE of the module. 
+ *      source      - The IRQ_SOURCE of the module. 
  * 
  * Return:
  *      none
  ******************************************************************************/
 void irq_clr_flag(IRQ_SOURCE source)
 {
-    IRQ_REGISTERS * p_irq = (IRQ_REGISTERS *)&IrqTab[source];
+    irq_registers_t * p_irq = (irq_registers_t *)&irq_tab[source];
     p_irq->IFS[REG_CLR] = p_irq->MASK;
 }
 
@@ -386,14 +383,14 @@ void irq_clr_flag(IRQ_SOURCE source)
  *      This routine is used to set the flag of a module (IRQ_SOURCE).
  * 
  * Parameters:
- *      source: The IRQ_SOURCE of the module. 
+ *      source      - The IRQ_SOURCE of the module. 
  * 
  * Return:
  *      none
  ******************************************************************************/
 void irq_set_flag(IRQ_SOURCE source)
 {
-    IRQ_REGISTERS * p_irq = (IRQ_REGISTERS *)&IrqTab[source];
+    irq_registers_t * p_irq = (irq_registers_t *)&irq_tab[source];
     p_irq->IFS[REG_SET] = p_irq->MASK;
 }
 
@@ -407,14 +404,14 @@ void irq_set_flag(IRQ_SOURCE source)
  *      use this function like that: if (!irq_get_flag(IRQ_T2)) ...
  * 
  * Parameters:
- *      source: The IRQ_SOURCE of the module. 
+ *      source      - The IRQ_SOURCE of the module. 
  * 
  * Return:
  *      An uint32_t value containing the flag status.
  ******************************************************************************/
 uint32_t irq_get_flag(IRQ_SOURCE source)
 {
-    IRQ_REGISTERS * p_irq = (IRQ_REGISTERS *)&IrqTab[source];
+    irq_registers_t * p_irq = (irq_registers_t *)&irq_tab[source];
     return (p_irq->IFS[REG] & p_irq->MASK);
 }
 
@@ -426,15 +423,15 @@ uint32_t irq_get_flag(IRQ_SOURCE source)
  *      This routine is used to enable/disable the interruption(s) of your module.
  * 
  * Parameters:
- *      source: The IRQ_SOURCE of the module. 
- *      enable: true to enable or false to disable interruption for your module.
+ *      source      - The IRQ_SOURCE of the module. 
+ *      enable      - true to enable or false to disable interruption for your module.
  * 
  * Return:
  *      none
  ******************************************************************************/
 void irq_enable(IRQ_SOURCE source, bool enable)
 {
-    IRQ_REGISTERS * p_irq = (IRQ_REGISTERS *)&IrqTab[source];
+    irq_registers_t * p_irq = (irq_registers_t *)&irq_tab[source];
     p_irq->IEC[enable ? REG_SET : REG_CLR] = p_irq->MASK;
 }
 
@@ -449,7 +446,7 @@ void irq_enable(IRQ_SOURCE source, bool enable)
  *      none
  * 
  * Return:
- *      It returns the status of interruptions BEFORE to disable.
+ *      It returns the status of interruptions BEFORE it turns disable.
  ******************************************************************************/
 uint32_t irq_disable_interrupts(void)
 {
@@ -469,7 +466,7 @@ uint32_t irq_disable_interrupts(void)
  *      none
  * 
  * Return:
- *      It returns the status of interruptions BEFORE to enable.
+ *      It returns the status of interruptions BEFORE it turns enable.
  ******************************************************************************/
 uint32_t irq_enable_interrupts(void)
 {

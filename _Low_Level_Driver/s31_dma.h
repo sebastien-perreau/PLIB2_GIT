@@ -90,98 +90,98 @@ typedef struct
 
 typedef struct 
 {
-	volatile UINT32 DMACON;
-    volatile UINT32 DMACONCLR;
-    volatile UINT32 DMACONSET;
-    volatile UINT32 DMACONINV;
+	volatile uint32_t DMACON;
+    volatile uint32_t DMACONCLR;
+    volatile uint32_t DMACONSET;
+    volatile uint32_t DMACONINV;
 
-    volatile UINT32 DMASTAT;
-    volatile UINT32 DMASTATCLR;
-    volatile UINT32 DMASTATSET;
-    volatile UINT32 DMASTATINV;
+    volatile uint32_t DMASTAT;
+    volatile uint32_t DMASTATCLR;
+    volatile uint32_t DMASTATSET;
+    volatile uint32_t DMASTATINV;
 
-    volatile UINT32 DMAADDR;
-    volatile UINT32 DMAADDRCLR;
-    volatile UINT32 DMAADDRSET;
-    volatile UINT32 DMAADDRINV;
+    volatile uint32_t DMAADDR;
+    volatile uint32_t DMAADDRCLR;
+    volatile uint32_t DMAADDRSET;
+    volatile uint32_t DMAADDRINV;
     
-    volatile UINT32 DCRCCON;
-    volatile UINT32 DCRCCONCLR;
-    volatile UINT32 DCRCCONSET;
-    volatile UINT32 DCRCCONINV;
+    volatile uint32_t DCRCCON;
+    volatile uint32_t DCRCCONCLR;
+    volatile uint32_t DCRCCONSET;
+    volatile uint32_t DCRCCONINV;
 
-    volatile UINT32 DCRCDATA;
-    volatile UINT32 DCRCDATACLR;
-    volatile UINT32 DCRCDATASET;
-    volatile UINT32 DCRCDATAINV;
+    volatile uint32_t DCRCDATA;
+    volatile uint32_t DCRCDATACLR;
+    volatile uint32_t DCRCDATASET;
+    volatile uint32_t DCRCDATAINV;
 
-    volatile UINT32 DCRCXOR;
-    volatile UINT32 DCRCXORCLR;
-    volatile UINT32 DCRCXORSET;
-    volatile UINT32 DCRCXORINV;
+    volatile uint32_t DCRCXOR;
+    volatile uint32_t DCRCXORCLR;
+    volatile uint32_t DCRCXORSET;
+    volatile uint32_t DCRCXORINV;
 } dma_registers_t;
 
 typedef struct
 {
-    volatile UINT32 DCHCON;
-    volatile UINT32 DCHCONCLR;
-    volatile UINT32 DCHCONSET;
-    volatile UINT32 DCHCONINV;
+    volatile uint32_t DCHCON;
+    volatile uint32_t DCHCONCLR;
+    volatile uint32_t DCHCONSET;
+    volatile uint32_t DCHCONINV;
     
-    volatile UINT32 DCHECON;
-    volatile UINT32 DCHECONCLR;
-    volatile UINT32 DCHECONSET;
-    volatile UINT32 DCHECONINV;
+    volatile uint32_t DCHECON;
+    volatile uint32_t DCHECONCLR;
+    volatile uint32_t DCHECONSET;
+    volatile uint32_t DCHECONINV;
     
-    volatile UINT32 DCHINT;
-    volatile UINT32 DCHINTCLR;
-    volatile UINT32 DCHINTSET;
-    volatile UINT32 DCHINTINT;
+    volatile uint32_t DCHINT;
+    volatile uint32_t DCHINTCLR;
+    volatile uint32_t DCHINTSET;
+    volatile uint32_t DCHINTINT;
     
-    volatile UINT32 DCHSSA;
-    volatile UINT32 DCHSSACLR;
-    volatile UINT32 DCHSSASET;
-    volatile UINT32 DCHSSAINV;
+    volatile uint32_t DCHSSA;
+    volatile uint32_t DCHSSACLR;
+    volatile uint32_t DCHSSASET;
+    volatile uint32_t DCHSSAINV;
     
-    volatile UINT32 DCHDSA;
-    volatile UINT32 DCHDSACLR;
-    volatile UINT32 DCHDSASET;
-    volatile UINT32 DCHDSAINV;
+    volatile uint32_t DCHDSA;
+    volatile uint32_t DCHDSACLR;
+    volatile uint32_t DCHDSASET;
+    volatile uint32_t DCHDSAINV;
     
-    volatile UINT32 DCHSSIZ;
-    volatile UINT32 DCHSSIZCLR;
-    volatile UINT32 DCHSSIZSET;
-    volatile UINT32 DCHSSIZINV;
+    volatile uint32_t DCHSSIZ;
+    volatile uint32_t DCHSSIZCLR;
+    volatile uint32_t DCHSSIZSET;
+    volatile uint32_t DCHSSIZINV;
     
-    volatile UINT32 DCHDSIZ;
-    volatile UINT32 DCHDSIZCLR;
-    volatile UINT32 DCHDSIZSET;
-    volatile UINT32 DCHDSIZINV;
+    volatile uint32_t DCHDSIZ;
+    volatile uint32_t DCHDSIZCLR;
+    volatile uint32_t DCHDSIZSET;
+    volatile uint32_t DCHDSIZINV;
     
-    volatile UINT32 DCHSPTR;
-    volatile UINT32 DCHSPTRCLR;
-    volatile UINT32 DCHSPTRSET;
-    volatile UINT32 DCHSPTRINV;
+    volatile uint32_t DCHSPTR;
+    volatile uint32_t DCHSPTRCLR;
+    volatile uint32_t DCHSPTRSET;
+    volatile uint32_t DCHSPTRINV;
     
-    volatile UINT32 DCHDPTR;
-    volatile UINT32 DCHDPTRCLR;
-    volatile UINT32 DCHDPTRSET;
-    volatile UINT32 DCHDPTRINV;
+    volatile uint32_t DCHDPTR;
+    volatile uint32_t DCHDPTRCLR;
+    volatile uint32_t DCHDPTRSET;
+    volatile uint32_t DCHDPTRINV;
     
-    volatile UINT32 DCHCSIZ;
-    volatile UINT32 DCHCSIZCLR;
-    volatile UINT32 DCHCSIZSET;
-    volatile UINT32 DCHCSIZINV;
+    volatile uint32_t DCHCSIZ;
+    volatile uint32_t DCHCSIZCLR;
+    volatile uint32_t DCHCSIZSET;
+    volatile uint32_t DCHCSIZINV;
     
-    volatile UINT32 DCHCPTR;
-    volatile UINT32 DCHCPTRCLR;
-    volatile UINT32 DCHCPTRSET;
-    volatile UINT32 DCHCPTRINV;
+    volatile uint32_t DCHCPTR;
+    volatile uint32_t DCHCPTRCLR;
+    volatile uint32_t DCHCPTRSET;
+    volatile uint32_t DCHCPTRINV;
     
-    volatile UINT32 DCHDAT;
-    volatile UINT32 DCHDATCLR;
-    volatile UINT32 DCHDATSET;
-    volatile UINT32 DCHDATINV;
+    volatile uint32_t DCHDAT;
+    volatile uint32_t DCHDATCLR;
+    volatile uint32_t DCHDATSET;
+    volatile uint32_t DCHDATINV;
 } dma_channel_registers_t;
 
 typedef void (*dma_event_handler_t)(uint8_t id, DMA_CHANNEL_FLAGS flags);
