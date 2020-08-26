@@ -8,19 +8,16 @@
 
 #include "../PLIB2.h"
 
-extern const dma_registers_t * dma_registers;
-const dma_registers_t * dma_registers = (dma_registers_t *)_DMAC_BASE_ADDRESS; 
-extern const dma_channel_registers_t * dma_channels_registers[];
-const dma_channel_registers_t * dma_channels_registers[] =
+static dma_channel_registers_t * p_dma_channels_registers_array[] =
 {
-    (dma_channel_registers_t *)_DMAC0_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC1_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC2_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC3_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC4_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC5_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC6_BASE_ADDRESS,
-    (dma_channel_registers_t *)_DMAC7_BASE_ADDRESS
+    (dma_channel_registers_t *) &DCH0CON,
+    (dma_channel_registers_t *) &DCH1CON,
+    (dma_channel_registers_t *) &DCH2CON,
+    (dma_channel_registers_t *) &DCH3CON,
+    (dma_channel_registers_t *) &DCH4CON,
+    (dma_channel_registers_t *) &DCH5CON,
+    (dma_channel_registers_t *) &DCH6CON,
+    (dma_channel_registers_t *) &DCH7CON
 };
 static dma_event_handler_t dma_event_handler[DMA_NUMBER_OF_MODULES] = {NULL};
 static bool dma_channel_is_using[DMA_NUMBER_OF_MODULES] = {0};
@@ -82,26 +79,23 @@ void dma_init(  DMA_MODULE id,
                 DMA_CHANNEL_EVENT dma_channel_event,
                 uint8_t irq_num_tx_start,
                 uint8_t irq_num_tx_abord)
-{
-    dma_registers_t * p_dma = (dma_registers_t *) dma_registers;
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    
+{   
     dma_channel_is_using[id] = true;
     
     dma_event_handler[id] = evt_handler;
     irq_init(IRQ_DMA0 + id, (evt_handler != NULL) ? IRQ_ENABLED : IRQ_DISABLED, irq_dma_priority(id));
-          
+    
     // Enable the DMA controller
-    p_dma->DMACONSET = _DMACON_ON_MASK;
+    DMACONSET = _DMACON_ON_MASK;
     // Abord all current operations on the DMA module.
     dma_abord_transfer(id);
     // Set DMA Channel Control Register
-    p_dma_channel->DCHCON = (dma_channel_control & ~DMA_CONT_CHANNEL_ENABLE);
+    p_dma_channels_registers_array[id]->DCHCON = (dma_channel_control & ~DMA_CONT_CHANNEL_ENABLE);
     // Set DMA Channel Event Control Register
-    p_dma_channel->DCHECON = dma_channel_event | (irq_num_tx_start << _DCH0ECON_CHSIRQ_POSITION) | (irq_num_tx_abord << _DCH0ECON_CHAIRQ_POSITION);
+    p_dma_channels_registers_array[id]->DCHECON = dma_channel_event | (irq_num_tx_start << _DCH0ECON_CHSIRQ_POSITION) | (irq_num_tx_abord << _DCH0ECON_CHAIRQ_POSITION);
     // Set DMA Channel Interrupt Control Register
-    p_dma_channel->DCHINTCLR = DMA_INT_ALL;
-    p_dma_channel->DCHINTSET = (dma_channel_interrupt & 0x00ff0000);
+    p_dma_channels_registers_array[id]->DCHINTCLR = DMA_INT_ALL;
+    p_dma_channels_registers_array[id]->DCHINTSET = (dma_channel_interrupt & 0x00ff0000);
 }
 
 /*******************************************************************************
@@ -209,12 +203,10 @@ DMA_MODULE dma_get_free_channel()
  ******************************************************************************/
 void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_event)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    
     dma_abord_transfer(id);
     
-    p_dma_channel->DCHECONCLR = DMA_EVT_START_TRANSFER_ON_IRQ | DMA_EVT_ABORD_TRANSFER | DMA_EVT_ABORD_TRANSFER_ON_PATTERN_MATCH;
-    p_dma_channel->DCHECON |= dma_channel_event;
+    p_dma_channels_registers_array[id]->DCHECONCLR = DMA_EVT_START_TRANSFER_ON_IRQ | DMA_EVT_ABORD_TRANSFER | DMA_EVT_ABORD_TRANSFER_ON_PATTERN_MATCH;
+    p_dma_channels_registers_array[id]->DCHECON |= dma_channel_event;
 }
 
 /*******************************************************************************
@@ -254,16 +246,15 @@ void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_
  ******************************************************************************/
 void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_transfer)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
     dma_channel_enable(id, OFF, false);
     while (dma_channel_is_enable(id));
-    p_dma_channel->DCHSSA = _VirtToPhys2(channel_transfer->src_start_addr);
-    p_dma_channel->DCHDSA = _VirtToPhys2(channel_transfer->dst_start_addr);
-    p_dma_channel->DCHSSIZ = channel_transfer->src_size;
-    p_dma_channel->DCHDSIZ = channel_transfer->dst_size;
-    p_dma_channel->DCHCSIZ = channel_transfer->cell_size;
-    p_dma_channel->DCHDAT = channel_transfer->pattern_data;    
-    p_dma_channel->DCHINTCLR = DMA_FLAG_ALL;
+    p_dma_channels_registers_array[id]->DCHSSA = _VirtToPhys2(channel_transfer->src_start_addr);
+    p_dma_channels_registers_array[id]->DCHDSA = _VirtToPhys2(channel_transfer->dst_start_addr);
+    p_dma_channels_registers_array[id]->DCHSSIZ = channel_transfer->src_size;
+    p_dma_channels_registers_array[id]->DCHDSIZ = channel_transfer->dst_size;
+    p_dma_channels_registers_array[id]->DCHCSIZ = channel_transfer->cell_size;
+    p_dma_channels_registers_array[id]->DCHDAT = channel_transfer->pattern_data;    
+    p_dma_channels_registers_array[id]->DCHINTCLR = DMA_FLAG_ALL;
 }
 
 /*******************************************************************************
@@ -287,9 +278,8 @@ void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_tra
  ******************************************************************************/
 void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    (enable) ? (p_dma_channel->DCHCONSET = DMA_CONT_CHANNEL_ENABLE) : (p_dma_channel->DCHCONCLR = DMA_CONT_CHANNEL_ENABLE);
-    (force_transfer) ? (p_dma_channel->DCHECONSET = DMA_EVT_FORCE_TRANSFER) : (p_dma_channel->DCHECONCLR = DMA_EVT_FORCE_TRANSFER);
+    (enable) ? (p_dma_channels_registers_array[id]->DCHCONSET = DMA_CONT_CHANNEL_ENABLE) : (p_dma_channels_registers_array[id]->DCHCONCLR = DMA_CONT_CHANNEL_ENABLE);
+    (force_transfer) ? (p_dma_channels_registers_array[id]->DCHECONSET = DMA_EVT_FORCE_TRANSFER) : (p_dma_channels_registers_array[id]->DCHECONCLR = DMA_EVT_FORCE_TRANSFER);
 }
 
 /*******************************************************************************
@@ -311,9 +301,8 @@ void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
  ******************************************************************************/
 void dma_abord_transfer(DMA_MODULE id)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    p_dma_channel->DCHECONSET = DMA_EVT_ABORD_TRANSFER;
-    while ((p_dma_channel->DCHECON & DMA_EVT_ABORD_TRANSFER) > 0);
+    p_dma_channels_registers_array[id]->DCHECONSET = DMA_EVT_ABORD_TRANSFER;
+    while ((p_dma_channels_registers_array[id]->DCHECON & DMA_EVT_ABORD_TRANSFER) > 0);
 }
 
 /*******************************************************************************
@@ -331,8 +320,7 @@ void dma_abord_transfer(DMA_MODULE id)
  ******************************************************************************/
 bool dma_channel_is_enable(DMA_MODULE id)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    return ((p_dma_channel->DCHCON & DMA_CONT_CHANNEL_ENABLE) > 0) ? 1 : 0;    
+    return ((p_dma_channels_registers_array[id]->DCHCON & DMA_CONT_CHANNEL_ENABLE) > 0) ? 1 : 0;    
 }
 
 /*******************************************************************************
@@ -359,8 +347,7 @@ bool dma_channel_is_enable(DMA_MODULE id)
  ******************************************************************************/
 uint16_t dma_get_index_cell_pointer(DMA_MODULE id)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    return (uint16_t) p_dma_channel->DCHCPTR;
+    return (uint16_t) p_dma_channels_registers_array[id]->DCHCPTR;
 }
 
 /*******************************************************************************
@@ -382,8 +369,7 @@ uint16_t dma_get_index_cell_pointer(DMA_MODULE id)
  ******************************************************************************/
 DMA_CHANNEL_FLAGS dma_get_flags(DMA_MODULE id)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    DMA_CHANNEL_FLAGS flags = (p_dma_channel->DCHINT) & 0xff;
+    DMA_CHANNEL_FLAGS flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
     return flags;
 }
 
@@ -403,8 +389,7 @@ DMA_CHANNEL_FLAGS dma_get_flags(DMA_MODULE id)
  ******************************************************************************/
 void dma_clear_flags(DMA_MODULE id, DMA_CHANNEL_FLAGS flags)
 {
-    dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-    p_dma_channel->DCHINTCLR = flags;
+    p_dma_channels_registers_array[id]->DCHINTCLR = flags;
 }
 
 /*******************************************************************************
@@ -443,8 +428,7 @@ void dma_interrupt_handler(DMA_MODULE id)
 {
     if (dma_event_handler[id] != NULL)
     {
-        dma_channel_registers_t * p_dma_channel = (dma_channel_registers_t *) dma_channels_registers[id];
-        DMA_CHANNEL_FLAGS flags = (p_dma_channel->DCHINT) & 0xff;
+        DMA_CHANNEL_FLAGS flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
         (*dma_event_handler[id])(id, flags);
     }
 }

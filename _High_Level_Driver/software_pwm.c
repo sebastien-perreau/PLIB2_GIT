@@ -20,15 +20,15 @@
 #include "../PLIB2.h"
 
 static SOFTWAPRE_PWM_PARAMS  * p_software_pwm = NULL;
-const ports_registers_t * p_ports_registers_array[] =
+static ports_registers_t * p_ports_registers_array[] =
 {
-	(ports_registers_t*)_PORTA_BASE_ADDRESS,
-	(ports_registers_t*)_PORTB_BASE_ADDRESS,
-	(ports_registers_t*)_PORTC_BASE_ADDRESS,
-	(ports_registers_t*)_PORTD_BASE_ADDRESS,
-	(ports_registers_t*)_PORTE_BASE_ADDRESS,
-	(ports_registers_t*)_PORTF_BASE_ADDRESS,
-	(ports_registers_t*)_PORTG_BASE_ADDRESS
+	(ports_registers_t *) &TRISA,
+	(ports_registers_t *) &TRISB,
+	(ports_registers_t *) &TRISC,
+	(ports_registers_t *) &TRISD,
+	(ports_registers_t *) &TRISE,
+	(ports_registers_t *) &TRISF,
+	(ports_registers_t *) &TRISG
 };
 
 /*******************************************************************************
@@ -47,23 +47,24 @@ static void software_pwm_event_handler(uint8_t id)
 {    
     static uint8_t i;
     
+    UNUSED_PARAMETER(id);
+    
     for (i = 0 ; i < p_software_pwm->number_of_pwm_used ; i++)
     {
-        ports_registers_t * pPorts = (ports_registers_t *) p_ports_registers_array[p_software_pwm->io[i]._port - 1];
         
         if (p_software_pwm->pwm[i] == 255)
         {
-            pPorts->LATSET = (uint32_t) (1 << p_software_pwm->io[i]._indice);
+            p_ports_registers_array[p_software_pwm->io[i]._port - 1]->LATSET = (uint32_t) (1 << p_software_pwm->io[i]._indice);
         }
         else if (p_software_pwm->pwm[i] > p_software_pwm->counter)
         {
-            pPorts->LATSET = (uint32_t) (1 << p_software_pwm->io[i]._indice);
+            p_ports_registers_array[p_software_pwm->io[i]._port - 1]->LATSET = (uint32_t) (1 << p_software_pwm->io[i]._indice);
         }
         else
         {
-            pPorts->LATCLR = (uint32_t) (1 << p_software_pwm->io[i]._indice);
+            p_ports_registers_array[p_software_pwm->io[i]._port - 1]->LATCLR = (uint32_t) (1 << p_software_pwm->io[i]._indice);
         }
-    }
+    }    
     
     p_software_pwm->counter += p_software_pwm->resolution;
 }

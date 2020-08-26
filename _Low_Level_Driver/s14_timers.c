@@ -10,14 +10,13 @@
 
 #warning "The X value of 'mTickCompare() >= X' can not exceed (2^32 - 1) "
 
-extern const timers_registers_t * timers_registers[];
-const timers_registers_t * timers_registers[] =
+static timers_registers_t * p_timers_registers_array[] =
 {
-    (timers_registers_t *)_TMR1_BASE_ADDRESS,
-    (timers_registers_t *)_TMR2_BASE_ADDRESS,
-    (timers_registers_t *)_TMR3_BASE_ADDRESS,
-    (timers_registers_t *)_TMR4_BASE_ADDRESS,
-    (timers_registers_t *)_TMR5_BASE_ADDRESS
+    (timers_registers_t *) &T1CON,
+    (timers_registers_t *) &T2CON,
+    (timers_registers_t *) &T3CON,
+    (timers_registers_t *) &T4CON,
+    (timers_registers_t *) &T5CON
 };
 static timer_event_handler_t timer_event_handler[TIMER_NUMBER_OF_MODULES] = {NULL};
 
@@ -40,7 +39,6 @@ static timer_event_handler_t timer_event_handler[TIMER_NUMBER_OF_MODULES] = {NUL
  ******************************************************************************/
 void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint32_t config, float period_us)
 {
-    timers_registers_t * p_timer = (timers_registers_t *) timers_registers[id];
     float v_pr = 100000;
     uint16_t v_prescale = 1;
     
@@ -96,10 +94,10 @@ void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint
         }
     }
     
-    p_timer->TCONCLR    = TMR_ON;
-    p_timer->TMR        = 0x0000;
-    p_timer->PR         = v_pr;
-    p_timer->TCONSET    = config;
+    p_timers_registers_array[id]->TCONCLR    = TMR_ON;
+    p_timers_registers_array[id]->TMR        = 0x0000;
+    p_timers_registers_array[id]->PR         = v_pr;
+    p_timers_registers_array[id]->TCONSET    = config;
 }
 
 /*******************************************************************************
@@ -117,21 +115,20 @@ void timer_init_2345_us(TIMER_MODULE id, timer_event_handler_t evt_handler, uint
  ******************************************************************************/
 float timer_get_period_us(TIMER_MODULE id)
 {
-    timers_registers_t * p_timer = (timers_registers_t *) timers_registers[id];
 
     if(id == TIMER1)
     {
-        return (float) (p_timer->PR * pow(8, (p_timer->TCON >> 4) & 0x0003) * 1000000.0 / PERIPHERAL_FREQ);
+        return (float) (p_timers_registers_array[id]->PR * pow(8, (p_timers_registers_array[id]->TCON >> 4) & 0x0003) * 1000000.0 / PERIPHERAL_FREQ);
     }
     else
     {
-        if (((p_timer->TCON >> 4) & 7) < 7)
+        if (((p_timers_registers_array[id]->TCON >> 4) & 7) < 7)
         {
-            return (float) (p_timer->PR * pow(2, (p_timer->TCON >> 4) & 7) * 1000000.0 / PERIPHERAL_FREQ);
+            return (float) (p_timers_registers_array[id]->PR * pow(2, (p_timers_registers_array[id]->TCON >> 4) & 7) * 1000000.0 / PERIPHERAL_FREQ);
         }
         else
         {
-            return (float) (p_timer->PR * 256.0 * 1000000 / PERIPHERAL_FREQ);
+            return (float) (p_timers_registers_array[id]->PR * 256.0 * 1000000 / PERIPHERAL_FREQ);
         }
     }
 }

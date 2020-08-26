@@ -45,6 +45,8 @@
                                                 mSetIO(CAN2_ENABLE_PIN);            \
                                             }
 
+    #define UNUSED_PARAMETER(X)         ((void)X)
+
     #define PTR_BASE                    unsigned long
 	
     #define bool                        BOOL

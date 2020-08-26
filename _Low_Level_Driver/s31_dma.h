@@ -88,39 +88,6 @@ typedef struct
     uint16_t        pattern_data;
 } dma_channel_transfer_t;
 
-typedef struct 
-{
-	volatile uint32_t DMACON;
-    volatile uint32_t DMACONCLR;
-    volatile uint32_t DMACONSET;
-    volatile uint32_t DMACONINV;
-
-    volatile uint32_t DMASTAT;
-    volatile uint32_t DMASTATCLR;
-    volatile uint32_t DMASTATSET;
-    volatile uint32_t DMASTATINV;
-
-    volatile uint32_t DMAADDR;
-    volatile uint32_t DMAADDRCLR;
-    volatile uint32_t DMAADDRSET;
-    volatile uint32_t DMAADDRINV;
-    
-    volatile uint32_t DCRCCON;
-    volatile uint32_t DCRCCONCLR;
-    volatile uint32_t DCRCCONSET;
-    volatile uint32_t DCRCCONINV;
-
-    volatile uint32_t DCRCDATA;
-    volatile uint32_t DCRCDATACLR;
-    volatile uint32_t DCRCDATASET;
-    volatile uint32_t DCRCDATAINV;
-
-    volatile uint32_t DCRCXOR;
-    volatile uint32_t DCRCXORCLR;
-    volatile uint32_t DCRCXORSET;
-    volatile uint32_t DCRCXORINV;
-} dma_registers_t;
-
 typedef struct
 {
     volatile uint32_t DCHCON;

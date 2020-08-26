@@ -604,7 +604,7 @@ void _EXAMPLE_AVERAGE_AND_NTC()
     switch (sm_example.index)
     {
         case _SETUP:
-            adc10_init(AN1|AN2|AN3|AN15, ADC10_VREFP_VREFN, NULL);
+            adc10_init(AN1|AN2|AN3|AN15, ADC10_VDD_VSS, NULL);
             {
                 uint16_t i;
                 ntc_settings_t ntc_params = {25, 33000, 3380};

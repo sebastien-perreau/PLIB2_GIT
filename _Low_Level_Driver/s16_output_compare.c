@@ -8,14 +8,13 @@
 
 #include "../PLIB2.h"
 
-extern const output_compare_registers_t * output_compare_registers[];
-const output_compare_registers_t * output_compare_registers[] =
+static output_compare_registers_t * p_output_compare_registers_array[] =
 {
-    (output_compare_registers_t *)_OCMP1_BASE_ADDRESS,
-    (output_compare_registers_t *)_OCMP2_BASE_ADDRESS,
-    (output_compare_registers_t *)_OCMP3_BASE_ADDRESS,
-    (output_compare_registers_t *)_OCMP4_BASE_ADDRESS,
-    (output_compare_registers_t *)_OCMP5_BASE_ADDRESS
+    (output_compare_registers_t *) &OC1CON,
+    (output_compare_registers_t *) &OC2CON,
+    (output_compare_registers_t *) &OC3CON,
+    (output_compare_registers_t *) &OC4CON,
+    (output_compare_registers_t *) &OC5CON
 };
 
 /*******************************************************************************
@@ -42,16 +41,15 @@ void pwm_init(PWM_MODULE_ENABLE pwm_ids, uint32_t t2_freq_hz, uint32_t t3_freq_h
     
     for (i = 0 ; i < PWM_NUMBER_OF_MODULES ; i++)
     {
-        output_compare_registers_t * p_oc = (output_compare_registers_t *)output_compare_registers[i];
-        p_oc->OCxR = 0X0000;
-        p_oc->OCxRS = 0x0000;
+        p_output_compare_registers_array[i]->OCxR = 0X0000;
+        p_output_compare_registers_array[i]->OCxRS = 0x0000;
         if (((pwm_ids >> (2*i)) & 1) > 0)
         {
-            p_oc->OCxCON = (OC_ON | OC_PWM_FAULT_PIN_DISABLE | OC_TIMER2_SRC);
+            p_output_compare_registers_array[i]->OCxCON = (OC_ON | OC_PWM_FAULT_PIN_DISABLE | OC_TIMER2_SRC);
         }
         else if (((pwm_ids >> (2*i)) & 2) > 0)
         {
-            p_oc->OCxCON = (OC_ON | OC_PWM_FAULT_PIN_DISABLE | OC_TIMER3_SRC);
+            p_output_compare_registers_array[i]->OCxCON = (OC_ON | OC_PWM_FAULT_PIN_DISABLE | OC_TIMER3_SRC);
         }
     }
     
@@ -67,23 +65,22 @@ void pwm_init(PWM_MODULE_ENABLE pwm_ids, uint32_t t2_freq_hz, uint32_t t3_freq_h
 
 /*******************************************************************************
  * Function:
- *      void pwm_set_duty_cycle(PWM_MODULE pwm_id, uint8_t dc)
+ *      void pwm_set_duty_cycle(PWM_MODULE id, uint8_t dc)
  *
  * Description:
  *      This routine is used to set a duty cycle on an OC (PWM) channel. The range
  *      is 0 to 255 (0% to 100%).
  *
  * Parameters:
- *      pwm_id      - The OC (PWM) channel you want to use.
+ *      id          - The OC (PWM) channel you want to use.
  *      dc          - The duty cycle (0..255)
  * 
  * Return:
  *      none
  ******************************************************************************/
-void pwm_set_duty_cycle(PWM_MODULE pwm_id, uint8_t dc)
+void pwm_set_duty_cycle(PWM_MODULE id, uint8_t dc)
 {
-    output_compare_registers_t * p_oc = (output_compare_registers_t *)output_compare_registers[pwm_id];
-    uint32_t prx = ((p_oc->OCxCON & OC_TIMER3_SRC) > 0) ? PR3 : PR2;
+    uint32_t prx = ((p_output_compare_registers_array[id]->OCxCON & OC_TIMER3_SRC) > 0) ? PR3 : PR2;
     
-    p_oc->OCxRS = (dc * (prx + 1)) / 255;
+    p_output_compare_registers_array[id]->OCxRS = (dc * (prx + 1)) / 255;
 }

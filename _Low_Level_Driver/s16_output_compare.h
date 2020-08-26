@@ -77,7 +77,7 @@ typedef struct
 } output_compare_registers_t;
 
 void pwm_init(PWM_MODULE_ENABLE pwm_ids, uint32_t t2_freq_hz, uint32_t t3_freq_hz);
-void pwm_set_duty_cycle(PWM_MODULE pwm_id, uint8_t dc);
+void pwm_set_duty_cycle(PWM_MODULE id, uint8_t dc);
 
 #endif
 

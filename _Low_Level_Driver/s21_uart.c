@@ -8,15 +8,14 @@
 
 #include "../PLIB2.h"
 
-extern const uart_registers_t * uart_registers[];
-const uart_registers_t * uart_registers[] =
+static uart_registers_t * p_uart_registers_array[] =
 {
-	(uart_registers_t*)_UART1_BASE_ADDRESS,
-	(uart_registers_t*)_UART2_BASE_ADDRESS,
-	(uart_registers_t*)_UART3_BASE_ADDRESS,
-	(uart_registers_t*)_UART4_BASE_ADDRESS,
-	(uart_registers_t*)_UART5_BASE_ADDRESS,
-	(uart_registers_t*)_UART6_BASE_ADDRESS
+	(uart_registers_t*) &U1MODE,
+	(uart_registers_t*) &U2MODE,
+	(uart_registers_t*) &U3MODE,
+	(uart_registers_t*) &U4MODE,
+	(uart_registers_t*) &U5MODE,
+	(uart_registers_t*) &U6MODE
 };
 static uint32_t real_baudrate_tab[UART_NUMBER_OF_MODULES] = {0};
 static uart_event_handler_t uart_event_handler[UART_NUMBER_OF_MODULES] = {NULL};
@@ -132,16 +131,15 @@ void uart_init(     UART_MODULE id,
  ******************************************************************************/
 void uart_enable(UART_MODULE id, UART_ENABLE_MODE enable_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     if (enable_mode & UART_ENABLE)
     {
-        p_uart->STASET = (enable_mode & (UART_ENABLE_RX_PIN | UART_ENABLE_TX_PIN));
-        p_uart->MODESET = 0x00008000;
+        p_uart_registers_array[id]->STASET = (enable_mode & (UART_ENABLE_RX_PIN | UART_ENABLE_TX_PIN));
+        p_uart_registers_array[id]->MODESET = 0x00008000;
     }
     else
     {
-        p_uart->STACLR = UART_ENABLE_RX_PIN | UART_ENABLE_TX_PIN;
-        p_uart->MODECLR = 0x00008000;
+        p_uart_registers_array[id]->STACLR = UART_ENABLE_RX_PIN | UART_ENABLE_TX_PIN;
+        p_uart_registers_array[id]->MODECLR = 0x00008000;
     }
 }
 
@@ -170,11 +168,10 @@ void uart_enable(UART_MODULE id, UART_ENABLE_MODE enable_mode)
  ******************************************************************************/
 void uart_set_params(UART_MODULE id, UART_CONFIG_MODE config_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    p_uart->MODECLR = (UART_CONFIG_MASK & 0x0000ffff);
-    p_uart->STACLR = ((UART_CONFIG_MASK >> 16) & 0x0000ffff);
-    p_uart->MODESET = (config_mode & 0x0000ffff);
-    p_uart->STASET = ((config_mode >> 16) & 0x0000ffff);
+    p_uart_registers_array[id]->MODECLR = (UART_CONFIG_MASK & 0x0000ffff);
+    p_uart_registers_array[id]->STACLR = ((UART_CONFIG_MASK >> 16) & 0x0000ffff);
+    p_uart_registers_array[id]->MODESET = (config_mode & 0x0000ffff);
+    p_uart_registers_array[id]->STASET = ((config_mode >> 16) & 0x0000ffff);
 }
 
 /*******************************************************************************
@@ -202,9 +199,8 @@ void uart_set_params(UART_MODULE id, UART_CONFIG_MODE config_mode)
  ******************************************************************************/
 void uart_set_line_control(UART_MODULE id, UART_LINE_CONTROL_MODE control_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    p_uart->MODECLR = UART_LINE_CONTROL_MASK;
-    p_uart->MODESET = (control_mode & UART_LINE_CONTROL_MASK);
+    p_uart_registers_array[id]->MODECLR = UART_LINE_CONTROL_MASK;
+    p_uart_registers_array[id]->MODESET = (control_mode & UART_LINE_CONTROL_MASK);
 }
 
 /*******************************************************************************
@@ -223,9 +219,8 @@ void uart_set_line_control(UART_MODULE id, UART_LINE_CONTROL_MODE control_mode)
  ******************************************************************************/
 void uart_set_fifo(UART_MODULE id, UART_FIFO_MODE fifo_mode)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    p_uart->STACLR = UART_FIFO_MASK;
-    p_uart->STASET = (fifo_mode & UART_FIFO_MASK);
+    p_uart_registers_array[id]->STACLR = UART_FIFO_MASK;
+    p_uart_registers_array[id]->STASET = (fifo_mode & UART_FIFO_MASK);
 }
 
 /*******************************************************************************
@@ -245,9 +240,8 @@ void uart_set_fifo(UART_MODULE id, UART_FIFO_MODE fifo_mode)
  ******************************************************************************/
 void uart_set_adress_detection(UART_MODULE id, uint8_t address, UART_ADDRESS_DETECTION address_detection)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    p_uart->STACLR = UART_ADDRESS_DETECTION_MASK;
-    p_uart->STASET = (((uint32_t) address) << 16) | address_detection;
+    p_uart_registers_array[id]->STACLR = UART_ADDRESS_DETECTION_MASK;
+    p_uart_registers_array[id]->STASET = (((uint32_t) address) << 16) | address_detection;
 }
 
 /*******************************************************************************
@@ -269,11 +263,10 @@ void uart_set_adress_detection(UART_MODULE id, uint8_t address, UART_ADDRESS_DET
  ******************************************************************************/
 void uart_set_baudrate(UART_MODULE id, uint32_t baudrate)
 {
-	uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
     uint32_t v_baudrate;
     uint32_t v_source_clock = (PERIPHERAL_FREQ >> 1);
 
-    if(!(p_uart->MODE & _U1MODE_BRGH_MASK))
+    if(!(p_uart_registers_array[id]->MODE & _U1MODE_BRGH_MASK))
     {
         v_source_clock >>= 2;
     }
@@ -283,7 +276,7 @@ void uart_set_baudrate(UART_MODULE id, uint32_t baudrate)
     v_baudrate >>= 1;
     v_baudrate--;
 
-    p_uart->BRG = v_baudrate & 0x0000FFFF;
+    p_uart_registers_array[id]->BRG = v_baudrate & 0x0000FFFF;
 
     real_baudrate_tab[id] = (v_source_clock >> 1) / ( v_baudrate + 1 );
 }
@@ -322,8 +315,7 @@ uint32_t uart_get_baudrate(UART_MODULE id)
  ******************************************************************************/
 bool uart_transmission_has_completed(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    return (_U1STA_TRMT_MASK == (p_uart->STA & _U1STA_TRMT_MASK));
+    return (_U1STA_TRMT_MASK == (p_uart_registers_array[id]->STA & _U1STA_TRMT_MASK));
 }
 
 /*******************************************************************************
@@ -342,8 +334,7 @@ bool uart_transmission_has_completed(UART_MODULE id)
  ******************************************************************************/
 bool uart_is_tx_ready(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    return (bool)(!(p_uart->STA & _U1STA_UTXBF_MASK));
+    return (bool)(!(p_uart_registers_array[id]->STA & _U1STA_UTXBF_MASK));
 }
 
 /*******************************************************************************
@@ -362,8 +353,7 @@ bool uart_is_tx_ready(UART_MODULE id)
  ******************************************************************************/
 bool uart_is_rx_data_available(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    return (bool)(_U1STA_URXDA_MASK == (p_uart->STA & _U1STA_URXDA_MASK));
+    return (bool)(_U1STA_URXDA_MASK == (p_uart_registers_array[id]->STA & _U1STA_URXDA_MASK));
 }
 
 /*******************************************************************************
@@ -388,11 +378,10 @@ bool uart_is_rx_data_available(UART_MODULE id)
  ******************************************************************************/
 bool uart_send_break(UART_MODULE id)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    if ((bool)(!(p_uart->STA & _U1STA_UTXBF_MASK)))
+    if ((bool)(!(p_uart_registers_array[id]->STA & _U1STA_UTXBF_MASK)))
     {
-        p_uart->STASET = _U1STA_UTXBRK_MASK;
-        p_uart->TX = 0;
+        p_uart_registers_array[id]->STASET = _U1STA_UTXBRK_MASK;
+        p_uart_registers_array[id]->TX = 0;
         return 0;
     }
     return 1;
@@ -414,10 +403,9 @@ bool uart_send_break(UART_MODULE id)
  ******************************************************************************/
 bool uart_send_data(UART_MODULE id, uint16_t data)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    if ((bool)(!(p_uart->STA & _U1STA_UTXBF_MASK)))
+    if ((bool)(!(p_uart_registers_array[id]->STA & _U1STA_UTXBF_MASK)))
     {
-        p_uart->TX = data;
+        p_uart_registers_array[id]->TX = data;
         return 0;
     }
     return 1;
@@ -439,10 +427,9 @@ bool uart_send_data(UART_MODULE id, uint16_t data)
  ******************************************************************************/
 bool uart_get_data(UART_MODULE id, uint16_t *p_data)
 {
-    uart_registers_t * p_uart = (uart_registers_t *) uart_registers[id];
-    if ((bool)(_U1STA_URXDA_MASK == (p_uart->STA & _U1STA_URXDA_MASK)))
+    if ((bool)(_U1STA_URXDA_MASK == (p_uart_registers_array[id]->STA & _U1STA_URXDA_MASK)))
     {
-        *p_data = (uint16_t) p_uart->RX;
+        *p_data = (uint16_t) p_uart_registers_array[id]->RX;
         return 0;
     }
     return 1;

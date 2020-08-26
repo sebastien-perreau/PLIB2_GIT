@@ -8,13 +8,12 @@
 
 #include "../PLIB2.h"
 
-extern const spi_registers_t * spi_registers[];
-const spi_registers_t * spi_registers[] =
+static spi_registers_t * p_spi_registers_array[] =
 {
-    (spi_registers_t *)_SPI1_BASE_ADDRESS,
-    (spi_registers_t *)_SPI2_BASE_ADDRESS,
-    (spi_registers_t *)_SPI3_BASE_ADDRESS,
-    (spi_registers_t *)_SPI4_BASE_ADDRESS
+    (spi_registers_t *) &SPI1CON,
+    (spi_registers_t *) &SPI2CON,
+    (spi_registers_t *) &SPI3CON,
+    (spi_registers_t *) &SPI4CON
 };
 static spi_event_handler_t spi_event_handler[SPI_NUMBER_OF_MODULES] = {NULL};
 
@@ -67,35 +66,30 @@ static void spi_io_init(SPI_MODULE id, SPI_CONFIG config)
 
 static bool spi_is_rx_available(SPI_MODULE id)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    
-    if(spiRegister->SPICON.ENHBUF)
+    if(p_spi_registers_array[id]->SPICON.ENHBUF)
     {
-        return spiRegister->SPISTAT.SPIRBE == 0;
+        return p_spi_registers_array[id]->SPISTAT.SPIRBE == 0;
     }
     else
     {
-        return spiRegister->SPISTAT.SPIRBF != 0;
+        return p_spi_registers_array[id]->SPISTAT.SPIRBF != 0;
     }
 }
 
 static bool spi_is_tx_available(SPI_MODULE id)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-
-    if(spiRegister->SPICON.ENHBUF)
+    if(p_spi_registers_array[id]->SPICON.ENHBUF)
     {
-        return spiRegister->SPISTAT.SPITBF == 0;
+        return p_spi_registers_array[id]->SPISTAT.SPITBF == 0;
     }
     else
     {
-        return spiRegister->SPISTAT.SPITBE != 0;
+        return p_spi_registers_array[id]->SPISTAT.SPITBE != 0;
     }
 }
 
 void spi_init(SPI_MODULE id, spi_event_handler_t evt_handler, IRQ_EVENT_TYPE event_type_enable, uint32_t freq_hz, SPI_CONFIG config)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
     uint32_t dummy;
 
     spi_event_handler[id] = evt_handler;
@@ -105,44 +99,39 @@ void spi_init(SPI_MODULE id, spi_event_handler_t evt_handler, IRQ_EVENT_TYPE eve
  
     spi_io_init(id, config);
     
-    spiRegister->SPICON.value = 0;
+    p_spi_registers_array[id]->SPICON.value = 0;
     // Clear the receive buffer
-    dummy = spiRegister->SPIBUF;
+    dummy = p_spi_registers_array[id]->SPIBUF;
     // Clear the overflow
-    spiRegister->SPISTATCLR = _SPI1STAT_SPIROV_MASK;
+    p_spi_registers_array[id]->SPISTATCLR = _SPI1STAT_SPIROV_MASK;
     spi_set_frequency(id, freq_hz);    
-    spiRegister->SPICON.value = config;
+    p_spi_registers_array[id]->SPICON.value = config;
     spi_enable(id, ON);
 }
 
 void spi_enable(SPI_MODULE id, bool enable)
-{
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];    
-    spiRegister->SPICON.SPION = enable;
+{   
+    p_spi_registers_array[id]->SPICON.SPION = enable;
 }
 
 void spi_set_mode(SPI_MODULE id, SPI_CONFIG mode)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    spiRegister->SPICON.MODE16 = ((mode >> 10) & 0x00000001);
-    spiRegister->SPICON.MODE32 = ((mode >> 11) & 0x00000001);
+    p_spi_registers_array[id]->SPICON.MODE16 = ((mode >> 10) & 0x00000001);
+    p_spi_registers_array[id]->SPICON.MODE32 = ((mode >> 11) & 0x00000001);
 }
 
 void spi_set_frequency(SPI_MODULE id, uint32_t freq_hz)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    spiRegister->SPIBRG = ((uint32_t) (PERIPHERAL_FREQ / freq_hz) >> 1) - 1;
+    p_spi_registers_array[id]->SPIBRG = ((uint32_t) (PERIPHERAL_FREQ / freq_hz) >> 1) - 1;
 }
 
 bool spi_write_and_read_8(SPI_MODULE id, uint32_t data_w, uint8_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    
     if(spi_is_tx_available(id))
     {
-        spiRegister->SPIBUF = data_w;
+        p_spi_registers_array[id]->SPIBUF = data_w;
         while(!spi_is_rx_available(id));
-        *data_r = (uint8_t) spiRegister->SPIBUF;
+        *data_r = (uint8_t) p_spi_registers_array[id]->SPIBUF;
         return 0;
     }
     return 1;
@@ -150,13 +139,11 @@ bool spi_write_and_read_8(SPI_MODULE id, uint32_t data_w, uint8_t * data_r)
 
 bool spi_write_and_read_16(SPI_MODULE id, uint32_t data_w, uint16_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    
     if(spi_is_tx_available(id))
     {
-        spiRegister->SPIBUF = data_w;
+        p_spi_registers_array[id]->SPIBUF = data_w;
         while(!spi_is_rx_available(id));
-        *data_r = (uint16_t) spiRegister->SPIBUF;
+        *data_r = (uint16_t) p_spi_registers_array[id]->SPIBUF;
         return 0;
     }
     return 1;
@@ -164,13 +151,11 @@ bool spi_write_and_read_16(SPI_MODULE id, uint32_t data_w, uint16_t * data_r)
 
 bool spi_write_and_read_32(SPI_MODULE id, uint32_t data_w, uint32_t * data_r)
 {
-    spi_registers_t * spiRegister = (spi_registers_t *)spi_registers[id];
-    
     if(spi_is_tx_available(id))
     {
-        spiRegister->SPIBUF = data_w;
+        p_spi_registers_array[id]->SPIBUF = data_w;
         while(!spi_is_rx_available(id));
-        *data_r = (uint32_t) spiRegister->SPIBUF;
+        *data_r = (uint32_t) p_spi_registers_array[id]->SPIBUF;
         return 0;
     }
     return 1;
