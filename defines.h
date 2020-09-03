@@ -46,8 +46,6 @@
                                             }
 
     #define UNUSED_PARAMETER(X)         ((void)X)
-
-    #define PTR_BASE                    unsigned long
 	
     #define bool                        BOOL
     #define true                        TRUE

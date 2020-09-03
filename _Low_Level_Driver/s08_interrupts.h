@@ -185,9 +185,9 @@ typedef struct
     volatile uint32_t       *IFS;
     volatile uint32_t       *IEC;
     volatile uint32_t       *IPC;
-    volatile uint32_t       MASK;
-    volatile uint32_t       SUB_PRI_POS;
-    volatile uint32_t       PRI_POS;
+    const uint32_t          MASK;
+    const uint32_t          SUB_PRI_POS;
+    const uint32_t          PRI_POS;
 } irq_registers_t;
             
 void irq_link_data_priority(const irq_data_priority_t *p_data_priority);
