@@ -2,7 +2,7 @@
 *	BLE driver
 *	Author : Sébastien PERREAU
 *
-*	version: 5.19.47
+*	version: 6.20.11
 *********************************************************************/
 
 #include "../PLIB2.h"
@@ -12,8 +12,8 @@ static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
 static DMA_MODULE m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
 
-static const char _ack[] = "ACK";
-static const char _nack[] = "NACK";
+static const char __ack[] = "ACK";
+static const char __nak[] = "NAK";
 
 static void _pa_lna(uint8_t *buffer);
 static void _led_status(uint8_t *buffer);
@@ -21,11 +21,14 @@ static void _name(uint8_t *buffer);
 static void _version(uint8_t *buffer);
 static void _adv_interval(uint8_t *buffer);
 static void _adv_timeout(uint8_t *buffer);
-static void _reset_ble_pickit(uint8_t *buffer);
-static void _reset_all(uint8_t *buffer);
+
 static void _conn_params(uint8_t *buffer);
-static void _phy_params(uint8_t *buffer);
-static void _att_size_params(uint8_t *buffer);
+static void _phy_param(uint8_t *buffer);
+static void _att_mtu_param(uint8_t *buffer);
+static void _data_length_param(uint8_t *buffer);
+static void _conn_evt_length_ext_param(uint8_t *buffer);
+
+static void _reset_request(uint8_t *buffer);
 static void _buffer(uint8_t *buffer);
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr);
@@ -82,7 +85,8 @@ void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_params_t * p_ble_para
                 uart_get_tx_irq(uart_id), 
                 0xff);   
     
-    p_ble->status.flags.send_reset_ble_pickit = 1;
+    p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+    p_ble->status.flags.reset_requested = 1;
 }
 
 void ble_stack_tasks()
@@ -105,21 +109,20 @@ void ble_stack_tasks()
                 {
                     p_ble->__uart.message_type = UART_ACK_MESSAGE;
                 }
-                else if (	(p_ble->__uart.index == 4) && \
+                else if (	(p_ble->__uart.index == 3) && \
                             (p_ble->__uart.buffer[0] == 'N') && \
                             (p_ble->__uart.buffer[1] == 'A') && \
-                            (p_ble->__uart.buffer[2] == 'C') && \
-                            (p_ble->__uart.buffer[3] == 'K'))
+                            (p_ble->__uart.buffer[2] == 'K'))
                 {
-                    p_ble->__uart.message_type = UART_NACK_MESSAGE;
+                    p_ble->__uart.message_type = UART_NAK_MESSAGE;
                 }
-                else if (	(p_ble->__uart.index > 5) && (p_ble->__uart.buffer[1] == 'N'))
+                else if (p_ble->__uart.index >= 5)
                 {
                     p_ble->__uart.message_type = UART_NEW_MESSAGE;
                 }
                 else
                 {
-                    p_ble->__uart.message_type = UART_OTHER_MESSAGE;
+                    p_ble->__uart.message_type = UART_NO_MESSAGE;
                 }
 
                 p_ble->__uart.index = 0;
@@ -135,51 +138,40 @@ void ble_stack_tasks()
 
             p_ble->__uart.message_type = UART_NO_MESSAGE;
 
-            if (p_ble->__uart.buffer[0] == ID_CHAR_EXTENDED_BUFFER_NO_CRC)
-            {            
-                p_ble->__incoming_message_uart.id = ID_NONE;
-                p_ble->service.extended_buffer.in_length = (p_ble->__uart.buffer[2] << 0) | (p_ble->__uart.buffer[3] << 8);
-                memcpy(p_ble->service.extended_buffer.in_data, &p_ble->__uart.buffer[4], p_ble->service.extended_buffer.in_length);
-                p_ble->service.extended_buffer.in_is_updated = true;
-            }
+            crc_calc = fu_crc_16_ibm(p_ble->__uart.buffer, p_ble->__uart.buffer[1] + 2);
+            crc_uart = (p_ble->__uart.buffer[p_ble->__uart.buffer[1] + 2] << 8) + (p_ble->__uart.buffer[p_ble->__uart.buffer[1] + 3] << 0);
+
+            if (crc_calc == crc_uart)
+            {                
+                dma_tx.src_start_addr = (void *) __ack;
+                dma_tx.dst_start_addr = (void *) uart_get_tx_reg(m_uart_id);
+                dma_tx.src_size = 3;
+                dma_tx.dst_size = 1;
+                dma_tx.cell_size = 1;
+
+                dma_set_transfer_params(m_dma_id, &dma_tx);  
+                dma_channel_enable(m_dma_id, ON, false);     // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).
+            }   
             else
             {
-                crc_calc = fu_crc_16_ibm(p_ble->__uart.buffer, p_ble->__uart.buffer[2] + 3);
-                crc_uart = (p_ble->__uart.buffer[p_ble->__uart.buffer[2] + 3] << 8) + (p_ble->__uart.buffer[p_ble->__uart.buffer[2] + 4] << 0);
+                p_ble->__incoming_message_uart.id = ID_NONE;
+                
+                dma_tx.src_start_addr = (void *) __nak;
+                dma_tx.dst_start_addr = (void *) uart_get_tx_reg(m_uart_id);
+                dma_tx.src_size = 3;
+                dma_tx.dst_size = 1;
+                dma_tx.cell_size = 1;
 
-                if (crc_calc == crc_uart)
-                {
-                    memcpy(&p_ble->__incoming_message_uart, p_ble->__uart.buffer, p_ble->__uart.buffer[2] + 3);
-                    dma_tx.src_start_addr = (void *)_ack;
-                    dma_tx.dst_start_addr = (void *)uart_get_tx_reg(m_uart_id);
-                    dma_tx.src_size = 3;
-                    dma_tx.dst_size = 1;
-                    dma_tx.cell_size = 1;
-                    
-                    dma_set_transfer_params(m_dma_id, &dma_tx);  
-                    dma_channel_enable(m_dma_id, ON, false);     // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).
-                }   
-                else
-                {
-                    p_ble->__incoming_message_uart.id = ID_NONE;
-                    dma_tx.src_start_addr = (void *)_nack;
-                    dma_tx.dst_start_addr = (void *)uart_get_tx_reg(m_uart_id);
-                    dma_tx.src_size = 4;
-                    dma_tx.dst_size = 1;
-                    dma_tx.cell_size = 1;
-                    
-                    dma_set_transfer_params(m_dma_id, &dma_tx);  
-                    dma_channel_enable(m_dma_id, ON, false);     // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).}            
-                }
-            }    
-            memset(p_ble->__uart.buffer, 0, sizeof(p_ble->__uart.buffer));
+                dma_set_transfer_params(m_dma_id, &dma_tx);  
+                dma_channel_enable(m_dma_id, ON, false);     // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).}            
+            }
 
-            switch (p_ble->__incoming_message_uart.id)
+            switch (p_ble->__uart.buffer[0])
             {
                 case ID_BOOT_MODE:
-                    if ((p_ble->__incoming_message_uart.type == 'N') && (p_ble->__incoming_message_uart.length == 1) && (p_ble->__incoming_message_uart.data[0] == 0x23))
+                    if ((p_ble->__uart.buffer[1] == 2) && (p_ble->__uart.buffer[2] == 0xb0) && (p_ble->__uart.buffer[3] == 0x07))
                     {
-                        if (!p_ble->status.flags.send_reset_ble_pickit)
+                        if (!p_ble->status.flags.reset_requested)
                         {
                             __boot_sequence();
                         }
@@ -187,10 +179,11 @@ void ble_stack_tasks()
                     break;
 
                 case ID_PA_LNA:
-                    if ((p_ble->__incoming_message_uart.data[0] & 1) != p_ble->params.pa_lna_enable)
+                    if ((p_ble->__uart.buffer[2]) != p_ble->params.pa_lna_enable)
                     {
-                        p_ble->params.pa_lna_enable = p_ble->__incoming_message_uart.data[0];
-                        p_ble->status.flags.send_reset_ble_pickit = 1;
+                        p_ble->params.pa_lna_enable = p_ble->__uart.buffer[2];
+                        p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+                        p_ble->status.flags.reset_requested = 1;
                     }
                     break;
 
@@ -242,9 +235,17 @@ void ble_stack_tasks()
                     break;
 
                 case ID_SOFTWARE_RESET:
-                    if ((p_ble->__incoming_message_uart.length == 1) && (p_ble->__incoming_message_uart.data[0] == RESET_ALL))
+                    if ((p_ble->__uart.buffer[1] == 1))
                     {
-                        p_ble->status.flags.exec_reset = true;
+                        p_ble->status.device.reset_type = (p_ble->__uart.buffer[1] & 3);
+                        if (p_ble->status.device.reset_type == RESET_PIC32_HOST)
+                        {
+                            p_ble->status.flags.software_reset = true;
+                        }
+                        else
+                        {
+                            p_ble->status.flags.reset_requested = true;
+                        }
                     }
                     break;
 
@@ -252,31 +253,33 @@ void ble_stack_tasks()
                     break;
 
             }
+                            
+            memset(p_ble->__uart.buffer, 0, sizeof(p_ble->__uart.buffer));
         }
 
         if (p_ble->status.flags.w > 0)
         {
-            if (p_ble->status.flags.exec_reset)
+            if (p_ble->status.flags.software_reset)
             {
                 if (uart_transmission_has_completed(m_uart_id))
                 {
                     software_reset();
                 }
             }
-            else if (p_ble->status.flags.send_reset_ble_pickit)
+            else if (p_ble->status.flags.reset_requested)
             {
-                if (!vsd_outgoing_message_uart(_reset_ble_pickit))
+                if (!vsd_outgoing_message_uart(_reset_request))
                 {
-                    p_ble->status.flags.send_reset_ble_pickit = 0;
+                    if (p_ble->status.device.reset_type == RESET_BOTH)
+                    {
+                        software_reset();
+                    }
+                    else
+                    {
+                        p_ble->status.flags.reset_requested = 0;
+                    }
                 }
             }
-            else if (p_ble->status.flags.send_reset_all)
-            {
-                if (!vsd_outgoing_message_uart(_reset_ble_pickit))
-                {
-                    software_reset();
-                }
-            } 
             else if (p_ble->status.flags.pa_lna)
             {
                 if (!vsd_outgoing_message_uart(_pa_lna))
@@ -328,14 +331,14 @@ void ble_stack_tasks()
             }
             else if (p_ble->status.flags.set_phy_params)
             {
-                if (!vsd_outgoing_message_uart(_phy_params))
+                if (!vsd_outgoing_message_uart(_phy_param))
                 {
                     p_ble->status.flags.set_phy_params = 0;
                 }
             }
             else if (p_ble->status.flags.set_att_size_params)
             {
-                if (!vsd_outgoing_message_uart(_att_size_params))
+                if (!vsd_outgoing_message_uart(_att_mtu_param))
                 {
                     p_ble->status.flags.set_att_size_params = 0;
                 }
@@ -356,30 +359,26 @@ void ble_stack_tasks()
 
 static void _pa_lna(uint8_t *buffer)
 {
-    uint8_t i = 0;
 	uint16_t crc = 0;
 
-	buffer[0] = ID_PA_LNA;
-	buffer[1] = 'W';
-    buffer[2] = 1;
-    buffer[3] = p_ble->params.pa_lna_enable;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_PA_LNA;	
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.pa_lna_enable;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _led_status(uint8_t *buffer)
 {
-    uint8_t i = 0;
 	uint16_t crc = 0;
 
 	buffer[0] = ID_LED_STATUS;
-	buffer[1] = 'W';
-    buffer[2] = 1;
-    buffer[3] = p_ble->params.led_status_enable;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.led_status_enable;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _name(uint8_t *buffer)
@@ -387,136 +386,138 @@ static void _name(uint8_t *buffer)
     uint8_t i = 0;
 	uint16_t crc = 0;
 
-	buffer[0] = ID_SET_NAME;
-	buffer[1] = 'W';
+	buffer[0] = ID_NAME;
 	
-	for (i = 0 ; i < 20 ; i++)
+	for (i = 0 ; i < 16 ; i++)
     {
-        if (p_ble->status.infos.device_name[i] == '\0')
+        if (p_ble->status.device.name[i] == '\0')
         {
             break;
         }
-        buffer[3+i] = p_ble->status.infos.device_name[i];
+        buffer[2+i] = p_ble->status.device.name[i];
     }
-    buffer[2] = i;
+    buffer[1] = i;
     
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _version(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_GET_VERSION;
-	buffer[1] = 'W';
-	buffer[2] = 1;
-    buffer[3] = 0x00;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_VERSION;
+	buffer[1] = 1;
+    buffer[2] = 0x00;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _adv_interval(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_ADV_INTERVAL;
-	buffer[1] = 'W';
-	buffer[2] = 2;
-    buffer[3] = (p_ble->params.preferred_gap_params.adv_interval >> 8) & 0xff;
-    buffer[4] = (p_ble->params.preferred_gap_params.adv_interval >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_BLE_ADV_INTERVAL;	
+	buffer[1] = 2;
+    buffer[2] = (p_ble->params.preferred_gap_params.adv_interval >> 8) & 0xff;
+    buffer[3] = (p_ble->params.preferred_gap_params.adv_interval >> 0) & 0xff;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _adv_timeout(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_ADV_TIMEOUT;
-	buffer[1] = 'W';
-	buffer[2] = 2;
-    buffer[3] = (p_ble->params.preferred_gap_params.adv_timeout >> 8) & 0xff;
-    buffer[4] = (p_ble->params.preferred_gap_params.adv_timeout >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
-}
-
-static void _reset_ble_pickit(uint8_t *buffer)
-{
-	uint16_t crc = 0;
-
-	buffer[0] = ID_SOFTWARE_RESET;
-	buffer[1] = 'W';
-    buffer[2] = 1;
-    buffer[3] = RESET_BLE_PICKIT;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
-}
-
-static void _reset_all(uint8_t *buffer)
-{
-	uint16_t crc = 0;
-
-	buffer[0] = ID_SOFTWARE_RESET;
-	buffer[1] = 'W';
-    buffer[2] = 1;
-    buffer[3] = RESET_ALL;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_BLE_ADV_TIMEOUT;	
+	buffer[1] = 2;
+    buffer[2] = (p_ble->params.preferred_gap_params.adv_timeout >> 8) & 0xff;
+    buffer[3] = (p_ble->params.preferred_gap_params.adv_timeout >> 0) & 0xff;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _conn_params(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_SET_BLE_CONN_PARAMS;
-	buffer[1] = 'W';
-    buffer[2] = 8;
-    buffer[3] = (p_ble->params.preferred_gap_params.conn_params.min_conn_interval >> 8) & 0xff;
-    buffer[4] = (p_ble->params.preferred_gap_params.conn_params.min_conn_interval >> 0) & 0xff;
-    buffer[5] = (p_ble->params.preferred_gap_params.conn_params.max_conn_interval >> 8) & 0xff;
-    buffer[6] = (p_ble->params.preferred_gap_params.conn_params.max_conn_interval >> 0) & 0xff;
-    buffer[7] = (p_ble->params.preferred_gap_params.conn_params.slave_latency >> 8) & 0xff;
-    buffer[8] = (p_ble->params.preferred_gap_params.conn_params.slave_latency >> 0) & 0xff;
-    buffer[9] = (p_ble->params.preferred_gap_params.conn_params.conn_sup_timeout >> 8) & 0xff;
-    buffer[10] = (p_ble->params.preferred_gap_params.conn_params.conn_sup_timeout >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_BLE_CONN_PARAMS;
+    buffer[1] = 8;
+    buffer[2] = (p_ble->params.preferred_gap_params.conn_params.min_conn_interval >> 8) & 0xff;
+    buffer[3] = (p_ble->params.preferred_gap_params.conn_params.min_conn_interval >> 0) & 0xff;
+    buffer[4] = (p_ble->params.preferred_gap_params.conn_params.max_conn_interval >> 8) & 0xff;
+    buffer[5] = (p_ble->params.preferred_gap_params.conn_params.max_conn_interval >> 0) & 0xff;
+    buffer[6] = (p_ble->params.preferred_gap_params.conn_params.slave_latency >> 8) & 0xff;
+    buffer[7] = (p_ble->params.preferred_gap_params.conn_params.slave_latency >> 0) & 0xff;
+    buffer[8] = (p_ble->params.preferred_gap_params.conn_params.conn_sup_timeout >> 8) & 0xff;
+    buffer[9] = (p_ble->params.preferred_gap_params.conn_params.conn_sup_timeout >> 0) & 0xff;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
-static void _phy_params(uint8_t *buffer)
+static void _phy_param(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_SET_BLE_PHY_PARAMS;
-	buffer[1] = 'W';
-    buffer[2] = 1;
-    buffer[3] = p_ble->params.preferred_gap_params.phys_params;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_BLE_PHY_PARAM;
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.preferred_gap_params.phy;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
-static void _att_size_params(uint8_t *buffer)
+static void _att_mtu_param(uint8_t *buffer)
 {
 	uint16_t crc = 0;
 
-	buffer[0] = ID_SET_BLE_ATT_SIZE_PARAMS;
-	buffer[1] = 'W';
-    buffer[2] = 2;
-    buffer[3] = p_ble->params.preferred_gap_params.mtu_size_params.max_tx_octets;
-    buffer[4] = p_ble->params.preferred_gap_params.mtu_size_params.max_rx_octets;
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[0] = ID_BLE_ATT_MTU_PARAM;
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.preferred_gap_params.att_mtu;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
+}
+
+static void _data_length_param(uint8_t *buffer)
+{
+	uint16_t crc = 0;
+
+	buffer[0] = ID_BLE_DATA_LENGTH_PARAM;
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.preferred_gap_params.data_length;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
+}
+
+static void _conn_evt_length_ext_param(uint8_t *buffer)
+{
+	uint16_t crc = 0;
+
+	buffer[0] = ID_BLE_CONN_EVT_LENGTH_EXT_PARAM;
+    buffer[1] = 1;
+    buffer[2] = p_ble->params.preferred_gap_params.conn_evt_len_ext;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
+}
+
+static void _reset_request(uint8_t *buffer)
+{
+	uint16_t crc = 0;
+
+	buffer[0] = ID_SOFTWARE_RESET;
+	buffer[1] = 1;
+	buffer[2] = p_ble->status.device.reset_type;
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _buffer(uint8_t *buffer)
@@ -524,12 +525,11 @@ static void _buffer(uint8_t *buffer)
 	uint16_t crc = 0;
 
 	buffer[0] = ID_CHAR_BUFFER;
-	buffer[1] = 'W';
-	buffer[2] = p_ble->service.buffer.out_length;
-    memcpy(&buffer[3], p_ble->service.buffer.out_data, p_ble->service.buffer.out_length);
-	crc = fu_crc_16_ibm(buffer, buffer[2]+3);
-	buffer[buffer[2]+3] = (crc >> 8) & 0xff;
-	buffer[buffer[2]+4] = (crc >> 0) & 0xff;
+	buffer[1] = p_ble->service.buffer.out_length;
+    memcpy(&buffer[2], p_ble->service.buffer.out_data, p_ble->service.buffer.out_length);
+	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
@@ -601,7 +601,7 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
                 p_ble->__uart.message_type = UART_NO_MESSAGE;
                 sm.index = 0;
             }
-            else if (p_ble->__uart.message_type == UART_NACK_MESSAGE)
+            else if (p_ble->__uart.message_type == UART_NAK_MESSAGE)
             {
                 p_ble->__uart.message_type = UART_NO_MESSAGE;
                 sm.index = 3;

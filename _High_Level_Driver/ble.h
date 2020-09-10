@@ -1,30 +1,33 @@
 #ifndef __BLE_H
 #define __BLE_H
 
-#define _VSD_VERSIONS                       "x.xx.xx"
+#define ID_NONE								0xfe
+#define ID_BOOT_MODE                		0x00
+#define ID_PA_LNA							0x01
+#define ID_LED_STATUS						0x02
+#define ID_NAME								0x03
+#define ID_VERSION							0x04
+#define ID_BLE_ADV_INTERVAL					0x05
+#define ID_BLE_ADV_TIMEOUT					0x06
+#define ID_HARDWARE_STATUS					0x07
+#define ID_BLE_CONNECTION_STATUS			0x08
+#define ID_BLE_PARAMETERS_STATUS			0x09
+#define ID_BLE_CHARACTERISTICS_PROPERTIES	0x0a
 
-#define ID_NONE                             0xfe
-#define ID_BOOT_MODE                        0x00
-// Characteristic Parameters (0x1503)
-#define ID_PA_LNA                           0x01
-#define ID_LED_STATUS                       0x02
-#define ID_SET_NAME                         0x03
-#define ID_GET_VERSION                      0x04
-#define ID_ADV_INTERVAL                     0x05
-#define ID_ADV_TIMEOUT                      0x06
-#define ID_GET_HARDWARE_STATUS              0x07
-#define ID_GET_BLE_CONNECTION_STATUS        0x08
-#define ID_GET_BLE_GAP_STATUS               0x09
-#define ID_GET_CHARACTERISTICS_PROPERTIES   0x0a
-// Characteristic Application (0x1501)
-#define ID_SOFTWARE_RESET                   0xff
-#define ID_SPC_STATUS                       0x10
-#define ID_CHAR_BUFFER                      0x30
-#define ID_CHAR_EXTENDED_BUFFER_NO_CRC      0x41
-// Characteristic Parameters (0x1503)
-#define ID_SET_BLE_CONN_PARAMS              0x20
-#define ID_SET_BLE_PHY_PARAMS               0x21
-#define ID_SET_BLE_ATT_SIZE_PARAMS          0x22
+#define ID_BLE_CONN_PARAMS     				0x20
+#define ID_BLE_PHY_PARAM   					0x21
+#define ID_BLE_ATT_MTU_PARAM				0x22
+#define ID_BLE_DATA_LENGTH_PARAM  			0x23
+#define ID_BLE_CONN_EVT_LENGTH_EXT_PARAM  	0x24
+
+#define ID_SOFTWARE_RESET					0xff
+
+#define ID_CHAR_SPC_STATUS					0x10
+#define ID_CHAR_THROUGHPUT					0x11
+#define ID_CHAR_BUFFER              		0x30
+
+
+
 
 #define MSEC_TO_UNITS(TIME, RESOLUTION)     (((TIME) * 1000) / (RESOLUTION))
 #define UNIT_0_625_MS                       625
@@ -34,37 +37,30 @@
 #define BLE_GAP_PHY_1MBPS                   0x01
 #define BLE_GAP_PHY_2MBPS                   0x02
 
-#define RESET_BLE_PICKIT                    0x01
-#define RESET_ALL                           0x02
-
-#define MAXIMUM_SIZE_EXTENDED_BUFFER        4800
+typedef enum
+{
+	RESET_BLE_PICKIT 						= 1,
+	RESET_PIC32_HOST						= 2,
+	RESET_BOTH								= 3
+} ble_pickit_reset_type_t;
 
 typedef enum
 {
-    UART_NO_MESSAGE = 0,
+    UART_NO_MESSAGE                         = 0,
     UART_ACK_MESSAGE,
-    UART_NACK_MESSAGE,
-    UART_NEW_MESSAGE,
-    UART_OTHER_MESSAGE
-} BLE_UART_MESSAGE_TYPE;
+    UART_NAK_MESSAGE,
+    UART_NEW_MESSAGE
+} ble_uart_message_type_t;
 
 typedef struct
 {
-    BLE_UART_MESSAGE_TYPE               message_type;
+    ble_uart_message_type_t             message_type;
 	bool                                receive_in_progress;
-	uint8_t                             buffer[MAXIMUM_SIZE_EXTENDED_BUFFER + 4];
+	uint8_t                             buffer[256];
 	uint16_t                            index;
     uint16_t                            old_index;
 	uint64_t                            tick;
 } ble_uart_t;
-
-typedef struct
-{
-	uint8_t                             id;
-	uint8_t                             type;
-	uint8_t                             length;
-	uint8_t                             data[242];
-} ble_serial_message_t;
 
 typedef union
 {
@@ -76,9 +72,8 @@ typedef union
         unsigned                        get_version:1;
         unsigned                        adv_interval:1;
         unsigned                        adv_timeout:1;
-        unsigned                        send_reset_ble_pickit:1;
-        unsigned                        send_reset_all:1;
-        unsigned                        exec_reset:1;
+		unsigned							software_reset:1;
+		unsigned							reset_requested:1;
         
         unsigned                        send_buffer:1;
         
@@ -109,8 +104,10 @@ typedef struct
 typedef struct
 {
 	ble_gap_conn_params_t               conn_params;
-	uint8_t                             phys_params;
-	ble_gap_data_length_params_t        mtu_size_params;
+	uint8_t                             phy;
+	uint8_t                             att_mtu;
+    uint8_t                             data_length;
+    uint8_t                             conn_evt_len_ext;
 	uint32_t                            adv_interval;
 	uint32_t                            adv_timeout;
 } ble_pickit_gap_params;
@@ -124,9 +121,10 @@ typedef struct
 
 typedef struct
 {
-    char                                vsd_version[8];
-    char                                device_name[20];
-} ble_device_infos_t;
+	ble_pickit_reset_type_t             reset_type;
+    char                                software_version[8];
+    char                                name[16];
+} ble_pickit_device_infos_t;
 
 typedef struct
 {
@@ -179,7 +177,7 @@ typedef struct
 
 typedef struct
 {
-    ble_device_infos_t                  infos;
+    ble_pickit_device_infos_t                  device;
     ble_flags_t                         flags;
     ble_hardware_status_t               hardware;
     ble_connection_status_t             connection;
@@ -198,21 +196,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t                             in_data[MAXIMUM_SIZE_EXTENDED_BUFFER];
-    uint16_t                            in_length;
-    bool                                in_is_updated;
-} ble_char_extended_buffer_t;
-
-typedef struct
-{
     ble_char_buffer_t                   buffer;
-    ble_char_extended_buffer_t          extended_buffer;
 } ble_characteristics_t;
 
 typedef struct
 {
 	ble_uart_t                          __uart;
-	ble_serial_message_t                __incoming_message_uart; 
     ble_status_t                        status;
     ble_pickit_params_t                 params;
     ble_characteristics_t               service;
@@ -220,7 +209,7 @@ typedef struct
 
 #define BLE_DEVICE_INFOS_INSTANCE(_name)                        \
 {                                                               \
-    .vsd_version = {_VSD_VERSIONS},                             \
+    .vsd_version = {"x.xx.xx"},                                 \
     .device_name = {_name}                                      \
 }
 
@@ -267,7 +256,6 @@ typedef struct
 #define BLE_PARAMS_INSTANCE(_name)                              \
 {                                                               \
 	.__uart = {0},                                              \
-	.__incoming_message_uart = {0},                             \
 	.status = BLE_PICKIT_STATUS_INSTANCE(_name),                \
     .params = BLE_PICKIT_PARAMS_INSTANCE(),                     \
     .service = {0},                                             \
