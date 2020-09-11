@@ -6,7 +6,7 @@
 #define ID_PA_LNA							0x01
 #define ID_LED_STATUS						0x02
 #define ID_NAME								0x03
-#define ID_VERSION							0x04
+#define ID_SOFTWARE_VERSION                 0x04
 #define ID_BLE_ADV_INTERVAL					0x05
 #define ID_BLE_ADV_TIMEOUT					0x06
 #define ID_HARDWARE_STATUS					0x07
@@ -65,20 +65,20 @@ typedef union
 {
     struct
     {
-        unsigned                        pa_lna:1;
-        unsigned                        led_status:1;
-        unsigned                        set_name:1;
-        unsigned                        get_version:1;
-        unsigned                        adv_interval:1;
-        unsigned                        adv_timeout:1;
+        unsigned                            pa_lna:1;
+        unsigned                            led_status:1;
+        unsigned                            name:1;
+        unsigned                            software_version:1;
+        unsigned                            adv_interval:1;
+        unsigned                            adv_timeout:1;
 		unsigned							software_reset:1;
 		unsigned							reset_requested:1;               
         
-        unsigned                            set_conn_params:1;
-        unsigned                            set_phy_param:1;
-        unsigned                            set_att_mtu_param:1;
-        unsigned                            set_data_length_param:1;
-        unsigned                            set_conn_evt_length_ext_param:1;
+        unsigned                            ble_pref_conn_params:1;
+        unsigned                            ble_pref_phy_param:1;
+        unsigned                            ble_pref_att_mtu_param:1;
+        unsigned                            ble_pref_data_length_param:1;
+        unsigned                            ble_pref_conn_evt_length_ext_param:1;
         
         unsigned                            notif_app_buffer:1;
     };
@@ -92,21 +92,28 @@ typedef struct
 {
     ble_pickit_uart_message_type_t          message_type;
 	bool                                    receive_in_progress;
-	uint8_t                                 buffer[256];
+	uint8_t                                 rx_buffer[256];
 	uint16_t                                index;
     uint16_t                                old_index;
 	uint64_t                                tick;
 } ble_pickit_serial_uart_t;
 
-typedef struct
+typedef union
 {
-    unsigned                                broadcast:1;
-    unsigned                                read:1;
-    unsigned                                write_wo_resp:1;
-    unsigned                                write:1;
-    unsigned                                notify:1;
-    unsigned                                indicate:1;
-    unsigned                                auth_signed_wr:1;
+    struct
+    {
+        unsigned                            broadcast:1;
+        unsigned                            read:1;
+        unsigned                            write_wo_resp:1;
+        unsigned                            write:1;
+        unsigned                            notify:1;
+        unsigned                            indicate:1;
+        unsigned                            auth_signed_wr:1;
+    };
+    struct
+    {
+        uint8_t                             b;
+    };
 } ble_pickit_characteristic_properties_t;
 
 typedef struct
@@ -117,6 +124,7 @@ typedef struct
 
 typedef struct
 {
+    bool                                    is_characteristics_status_updated;
 	ble_pickit_characteristic_status_t      _0x1501;
 	ble_pickit_characteristic_status_t      _0x1503;	
 } ble_pickit_characteristics_status_t;
@@ -131,6 +139,7 @@ typedef struct
 
 typedef struct
 {
+    bool                                    is_gap_params_updated;          // Only used for "current_params"
 	ble_gap_conn_params_t                   conn_params;
 	uint8_t                                 phy;
 	uint8_t                                 att_mtu;
@@ -190,6 +199,7 @@ typedef struct
 
 #define BLE_PICKIT_PREFERRED_PARAMS_INSTANCE()					\
 {																\
+    .is_gap_params_updated = false,                             \
 	.conn_params = BLE_PICKIT_CONN_PARAMS_INSTANCE(),			\
 	.phy = BLE_GAP_PHY_2MBPS,                                   \
 	.att_mtu = 247,                                             \
@@ -208,12 +218,12 @@ typedef struct
 
 #define BLE_PICKIT_STATUS_INSTANCE(_name)                       \
 {                                                       		\
-	.device = BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name, _version),\
+	.device = BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name),          \
 	.hardware = {false, false, true},							\
 	.connection = {0},											\
 	.preferred_params = BLE_PICKIT_PREFERRED_PARAMS_INSTANCE(),	\
-	.current_params = {{0}, {0}, 0, {0}, 0, 0, 0},				\
-	.characteristics = {{{0}}, {{0}}}							\
+	.current_params = {0, {0}, 0, 0, 0, 0, 0, 0},				\
+	.characteristics = {0, {{0}}, {{0}}}						\
 }
 
 #define BLE_PICKIT_INSTANCE(_name)                              \

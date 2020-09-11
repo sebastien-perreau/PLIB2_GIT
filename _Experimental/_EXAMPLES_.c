@@ -1331,7 +1331,7 @@ void _EXAMPLE_VEML7700()
     } 
 }
 
-void _EXAMPLE_BLE(ble_params_t * p_ble)
+void _EXAMPLE_BLE(ble_pickit_t * p_ble)
 {
     static state_machine_t sm_example = {0};
     
@@ -1344,19 +1344,19 @@ void _EXAMPLE_BLE(ble_params_t * p_ble)
             
         case _MAIN:
             // CENTRAL write a buffer to the PERIPHERAL
-            mUpdateLedStatusD3(p_ble->service.buffer.in_data[0]);
-            if (p_ble->service.buffer.in_is_updated)
+            mUpdateLedStatusD3(p_ble->app_buffer.in_data[0]);
+            if (p_ble->app_buffer.in_is_updated)
             {
-                p_ble->service.buffer.in_is_updated = false;
+                p_ble->app_buffer.in_is_updated = false;
                 mToggleLedStatusD2();
             }
             // Notify the CENTRAL by using a "buffer object"
             if (mTickCompare(sm_example.tick) >= TICK_1S)
             {
                 sm_example.tick = mGetTick();
-                p_ble->service.buffer.out_data[0]++;
-                p_ble->service.buffer.out_length = 1;
-                p_ble->status.flags.send_buffer = true;
+                p_ble->app_buffer.out_data[0]++;
+                p_ble->app_buffer.out_length = 1;
+                p_ble->flags.notif_app_buffer = true;
             }
             break;
     } 
