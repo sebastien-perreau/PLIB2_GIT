@@ -7,7 +7,7 @@
 
 #include "../PLIB2.h"
 
-static ble_params_t * p_ble;
+static ble_pickit_t * p_ble;
 static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
 static DMA_MODULE m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
@@ -35,16 +35,18 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr);
 
 static void __boot_sequence()
 {
-    p_ble->status.flags.pa_lna = 1;
-    p_ble->status.flags.led_status = 1;
-    p_ble->status.flags.set_name = 1;
-    p_ble->status.flags.get_version = 1;
-    p_ble->status.flags.adv_interval = 1;
-    p_ble->status.flags.adv_timeout = 1;
+    p_ble->flags.pa_lna = 1;
+    p_ble->flags.led_status = 1;
+    p_ble->flags.set_name = 1;
+    p_ble->flags.get_version = 1;
+    p_ble->flags.adv_interval = 1;
+    p_ble->flags.adv_timeout = 1;
     
-    p_ble->status.flags.set_conn_params = 1;
-    p_ble->status.flags.set_phy_params = 1;
-    p_ble->status.flags.set_att_size_params = 1;
+    p_ble->flags.set_conn_params = 1;
+    p_ble->flags.set_phy_param = 1;
+    p_ble->flags.set_att_mtu_param = 1;
+    p_ble->flags.set_data_length_param = 1;
+    p_ble->flags.set_conn_evt_length_ext_param = 1;
 }
 
 static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t data)
@@ -57,9 +59,9 @@ static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t
             
         case IRQ_UART_RX:
             
-            p_ble->__uart.receive_in_progress = true;
-            p_ble->__uart.buffer[p_ble->__uart.index] = (uint8_t) (data);
-            p_ble->__uart.index++;
+            p_ble->uart.receive_in_progress = true;
+            p_ble->uart.buffer[p_ble->uart.index] = (uint8_t) (data);
+            p_ble->uart.index++;
             break;
             
         case IRQ_UART_TX:
@@ -69,7 +71,7 @@ static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t
     }
 }
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_params_t * p_ble_params)
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_params)
 {       
     p_ble = p_ble_params;
     m_uart_id = uart_id;
@@ -86,60 +88,60 @@ void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_params_t * p_ble_para
                 0xff);   
     
     p_ble->status.device.reset_type = RESET_BLE_PICKIT;
-    p_ble->status.flags.reset_requested = 1;
+    p_ble->flags.reset_requested = 1;
 }
 
 void ble_stack_tasks()
 {         
     if (m_uart_id != UART_NUMBER_OF_MODULES)
     {
-        if (p_ble->__uart.index != p_ble->__uart.old_index)
+        if (p_ble->uart.index != p_ble->uart.old_index)
         {                
-            mUpdateTick(p_ble->__uart.tick);                        
-            p_ble->__uart.old_index = p_ble->__uart.index;
+            mUpdateTick(p_ble->uart.tick);                        
+            p_ble->uart.old_index = p_ble->uart.index;
         }
-        else if (p_ble->__uart.index > 0)
+        else if (p_ble->uart.index > 0)
         {
-            if (mTickCompare(p_ble->__uart.tick) >= TICK_300US)
+            if (mTickCompare(p_ble->uart.tick) >= TICK_300US)
             {
-                if (	(p_ble->__uart.index == 3) && \
-                        (p_ble->__uart.buffer[0] == 'A') && \
-                        (p_ble->__uart.buffer[1] == 'C') && \
-                        (p_ble->__uart.buffer[2] == 'K'))
+                if (	(p_ble->uart.index == 3) && \
+                        (p_ble->uart.buffer[0] == 'A') && \
+                        (p_ble->uart.buffer[1] == 'C') && \
+                        (p_ble->uart.buffer[2] == 'K'))
                 {
-                    p_ble->__uart.message_type = UART_ACK_MESSAGE;
+                    p_ble->uart.message_type = UART_ACK_MESSAGE;
                 }
-                else if (	(p_ble->__uart.index == 3) && \
-                            (p_ble->__uart.buffer[0] == 'N') && \
-                            (p_ble->__uart.buffer[1] == 'A') && \
-                            (p_ble->__uart.buffer[2] == 'K'))
+                else if (	(p_ble->uart.index == 3) && \
+                            (p_ble->uart.buffer[0] == 'N') && \
+                            (p_ble->uart.buffer[1] == 'A') && \
+                            (p_ble->uart.buffer[2] == 'K'))
                 {
-                    p_ble->__uart.message_type = UART_NAK_MESSAGE;
+                    p_ble->uart.message_type = UART_NAK_MESSAGE;
                 }
-                else if (p_ble->__uart.index >= 5)
+                else if (p_ble->uart.index >= 5)
                 {
-                    p_ble->__uart.message_type = UART_NEW_MESSAGE;
+                    p_ble->uart.message_type = UART_NEW_MESSAGE;
                 }
                 else
                 {
-                    p_ble->__uart.message_type = UART_NO_MESSAGE;
+                    p_ble->uart.message_type = UART_NO_MESSAGE;
                 }
 
-                p_ble->__uart.index = 0;
-                p_ble->__uart.receive_in_progress = false;
-                p_ble->__uart.old_index = p_ble->__uart.index;
+                p_ble->uart.index = 0;
+                p_ble->uart.receive_in_progress = false;
+                p_ble->uart.old_index = p_ble->uart.index;
             }
         }
 
-        if (p_ble->__uart.message_type == UART_NEW_MESSAGE)
+        if (p_ble->uart.message_type == UART_NEW_MESSAGE)
         {
             uint16_t i;
             uint16_t crc_calc, crc_uart;
 
-            p_ble->__uart.message_type = UART_NO_MESSAGE;
+            p_ble->uart.message_type = UART_NO_MESSAGE;
 
-            crc_calc = fu_crc_16_ibm(p_ble->__uart.buffer, p_ble->__uart.buffer[1] + 2);
-            crc_uart = (p_ble->__uart.buffer[p_ble->__uart.buffer[1] + 2] << 8) + (p_ble->__uart.buffer[p_ble->__uart.buffer[1] + 3] << 0);
+            crc_calc = fu_crc_16_ibm(p_ble->uart.buffer, p_ble->uart.buffer[1] + 2);
+            crc_uart = (p_ble->uart.buffer[p_ble->uart.buffer[1] + 2] << 8) + (p_ble->uart.buffer[p_ble->uart.buffer[1] + 3] << 0);
 
             if (crc_calc == crc_uart)
             {                
@@ -166,12 +168,12 @@ void ble_stack_tasks()
                 dma_channel_enable(m_dma_id, ON, false);     // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).}            
             }
 
-            switch (p_ble->__uart.buffer[0])
+            switch (p_ble->uart.buffer[0])
             {
                 case ID_BOOT_MODE:
-                    if ((p_ble->__uart.buffer[1] == 2) && (p_ble->__uart.buffer[2] == 0xb0) && (p_ble->__uart.buffer[3] == 0x07))
+                    if ((p_ble->uart.buffer[1] == 2) && (p_ble->uart.buffer[2] == 0xb0) && (p_ble->uart.buffer[3] == 0x07))
                     {
-                        if (!p_ble->status.flags.reset_requested)
+                        if (!p_ble->flags.reset_requested)
                         {
                             __boot_sequence();
                         }
@@ -179,11 +181,11 @@ void ble_stack_tasks()
                     break;
 
                 case ID_PA_LNA:
-                    if ((p_ble->__uart.buffer[2]) != p_ble->params.pa_lna_enable)
+                    if ((p_ble->uart.buffer[2]) != p_ble->params.pa_lna_enable)
                     {
-                        p_ble->params.pa_lna_enable = p_ble->__uart.buffer[2];
+                        p_ble->params.pa_lna_enable = p_ble->uart.buffer[2];
                         p_ble->status.device.reset_type = RESET_BLE_PICKIT;
-                        p_ble->status.flags.reset_requested = 1;
+                        p_ble->flags.reset_requested = 1;
                     }
                     break;
 
@@ -235,9 +237,9 @@ void ble_stack_tasks()
                     break;
 
                 case ID_SOFTWARE_RESET:
-                    if ((p_ble->__uart.buffer[1] == 1))
+                    if ((p_ble->uart.buffer[1] == 1))
                     {
-                        p_ble->status.device.reset_type = (p_ble->__uart.buffer[1] & 3);
+                        p_ble->status.device.reset_type = (p_ble->uart.buffer[1] & 3);
                         if (p_ble->status.device.reset_type == RESET_PIC32_HOST)
                         {
                             p_ble->status.flags.software_reset = true;
@@ -254,7 +256,7 @@ void ble_stack_tasks()
 
             }
                             
-            memset(p_ble->__uart.buffer, 0, sizeof(p_ble->__uart.buffer));
+            memset(p_ble->uart.buffer, 0, sizeof(p_ble->uart.buffer));
         }
 
         if (p_ble->status.flags.w > 0)
@@ -545,7 +547,7 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
             sm.tick = mGetTick();
         case 1:
             
-            if (uart_transmission_has_completed(m_uart_id) && !p_ble->__uart.receive_in_progress)
+            if (uart_transmission_has_completed(m_uart_id) && !p_ble->uart.receive_in_progress)
             {
                 memset(buffer, 0, sizeof(buffer));
                 sm.index++;
@@ -556,7 +558,7 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
         case 2:
             if (mTickCompare(sm.tick) >= TICK_400US)
         	{
-        		if (uart_transmission_has_completed(m_uart_id) && !p_ble->__uart.receive_in_progress)
+        		if (uart_transmission_has_completed(m_uart_id) && !p_ble->uart.receive_in_progress)
 				{
 					sm.index++;
 					sm.tick = mGetTick();
@@ -596,14 +598,14 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 
 		case 5:
 
-            if (p_ble->__uart.message_type == UART_ACK_MESSAGE)
+            if (p_ble->uart.message_type == UART_ACK_MESSAGE)
             {
-                p_ble->__uart.message_type = UART_NO_MESSAGE;
+                p_ble->uart.message_type = UART_NO_MESSAGE;
                 sm.index = 0;
             }
-            else if (p_ble->__uart.message_type == UART_NAK_MESSAGE)
+            else if (p_ble->uart.message_type == UART_NAK_MESSAGE)
             {
-                p_ble->__uart.message_type = UART_NO_MESSAGE;
+                p_ble->uart.message_type = UART_NO_MESSAGE;
                 sm.index = 3;
             }
             else if (mTickCompare(sm.tick) >= TICK_10MS)
