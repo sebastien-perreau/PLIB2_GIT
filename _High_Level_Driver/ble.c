@@ -188,6 +188,13 @@ void ble_stack_tasks()
                         p_ble->flags.reset_requested = 1;
                     }
                     break;
+                    
+                case ID_NAME:
+                    memcpy(p_ble->status.device.name, &p_ble->uart.rx_buffer[2], p_ble->uart.rx_buffer[1]);
+                    p_ble->status.device.name[p_ble->uart.rx_buffer[1]] = '\0';
+                    p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+                    p_ble->flags.reset_requested = 1;
+                    break;
 
                 case ID_SOFTWARE_VERSION:
                     memcpy(p_ble->status.device.software_version, &p_ble->uart.rx_buffer[2], p_ble->uart.rx_buffer[1]);
@@ -225,7 +232,39 @@ void ble_stack_tasks()
                     p_ble->status.characteristics._0x1503.properties.b = (p_ble->uart.rx_buffer[3] & 0x7f);
                     p_ble->status.characteristics._0x1503.is_notify_enabled = GET_BIT(p_ble->uart.rx_buffer[3], 7);
                     break;
-
+                    
+                case ID_BLE_CONN_PARAMS:
+                    // No need to reset. "sd_ble_gap_conn_param_update(..)" is already executed in BLE_PICKIT.
+                    p_ble->status.preferred_params.conn_params.min_conn_interval = (p_ble->uart.rx_buffer[2] << 8) | (p_ble->uart.rx_buffer[3] << 0);
+                    p_ble->status.preferred_params.conn_params.max_conn_interval = (p_ble->uart.rx_buffer[4] << 8) | (p_ble->uart.rx_buffer[5] << 0);
+                    p_ble->status.preferred_params.conn_params.slave_latency = (p_ble->uart.rx_buffer[6] << 8) | (p_ble->uart.rx_buffer[7] << 0);
+                    p_ble->status.preferred_params.conn_params.conn_sup_timeout = (p_ble->uart.rx_buffer[8] << 8) | (p_ble->uart.rx_buffer[9] << 0);
+                    break;
+                    
+                case ID_BLE_PHY_PARAM:
+                    // No need to reset. "sd_ble_gap_conn_param_update(..)" is already executed in BLE_PICKIT.
+                    p_ble->status.preferred_params.phy = p_ble->uart.rx_buffer[2];
+                    break;
+                    
+                case ID_BLE_ATT_MTU_PARAM:
+                    // Reset is needed to update this parameter (during boot sequence).
+                    p_ble->status.preferred_params.att_mtu = p_ble->uart.rx_buffer[2];                    
+                    p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+                    p_ble->flags.reset_requested = 1;
+                    break;
+                    
+                case ID_BLE_DATA_LENGTH_PARAM:
+                    // No need to reset. "sd_ble_gap_conn_param_update(..)" is already executed in BLE_PICKIT.
+                    p_ble->status.preferred_params.data_length = p_ble->uart.rx_buffer[2];
+                    break;
+                    
+                case ID_BLE_CONN_EVT_LENGTH_EXT_PARAM:
+                    // Reset is needed to update this parameter (during boot sequence).
+                    p_ble->status.preferred_params.conn_evt_len_ext = p_ble->uart.rx_buffer[2];                    
+                    p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+                    p_ble->flags.reset_requested = 1;
+                    break;
+                    
                 case ID_CHAR_BUFFER:
                     memcpy(p_ble->app_buffer.in_data, &p_ble->uart.rx_buffer[2], p_ble->uart.rx_buffer[1]);
                     p_ble->app_buffer.in_length = p_ble->uart.rx_buffer[1];
