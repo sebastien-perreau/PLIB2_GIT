@@ -625,7 +625,7 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 
             dma_tx.src_start_addr = (void *)buffer;
             dma_tx.dst_start_addr = (void *)uart_get_tx_reg(m_uart_id);
-            dma_tx.src_size = buffer[2] + 5;
+            dma_tx.src_size = buffer[1] + 4;
             dma_tx.dst_size = 1;
             dma_tx.cell_size = 1;
             
