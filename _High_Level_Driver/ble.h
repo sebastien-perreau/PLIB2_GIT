@@ -3,16 +3,17 @@
 
 #define ID_NONE								0xfe
 #define ID_BOOT_MODE                		0x00
-#define ID_PA_LNA							0x01
-#define ID_LED_STATUS						0x02
-#define ID_NAME								0x03
-#define ID_SOFTWARE_VERSION                 0x04
-#define ID_BLE_ADV_INTERVAL					0x05
-#define ID_BLE_ADV_TIMEOUT					0x06
-#define ID_HARDWARE_STATUS					0x07
-#define ID_BLE_CONNECTION_STATUS			0x08
-#define ID_BLE_PARAMETERS_STATUS			0x09
-#define ID_BLE_CHARACTERISTICS_PROPERTIES	0x0a
+#define ID_SECURITY_MODE                    0x01
+#define ID_NAME								0x02
+#define ID_SOFTWARE_VERSION                 0x03
+#define ID_PA_LNA							0x04
+#define ID_LED_STATUS						0x05
+#define ID_BLE_ADV_INTERVAL					0x06
+#define ID_BLE_ADV_TIMEOUT					0x07
+#define ID_HARDWARE_STATUS					0x08
+#define ID_BLE_CONNECTION_STATUS			0x09
+#define ID_BLE_PARAMETERS_STATUS			0x0a
+#define ID_BLE_CHARACTERISTICS_PROPERTIES	0x0b
 
 #define ID_BLE_CONN_PARAMS     				0x20
 #define ID_BLE_PHY_PARAM   					0x21
@@ -25,9 +26,6 @@
 #define ID_CHAR_SPC_STATUS					0x10
 #define ID_CHAR_THROUGHPUT					0x11
 #define ID_CHAR_BUFFER              		0x30
-
-
-
 
 #define MSEC_TO_UNITS(TIME, RESOLUTION)     (((TIME) * 1000) / (RESOLUTION))
 #define UNIT_0_625_MS                       625
@@ -65,10 +63,11 @@ typedef union
 {
     struct
     {
-        unsigned                            pa_lna:1;
-        unsigned                            led_status:1;
+        unsigned                            security_mode:1;
         unsigned                            name:1;
         unsigned                            software_version:1;
+        unsigned                            pa_lna:1;
+        unsigned                            led_status:1;
         unsigned                            adv_interval:1;
         unsigned                            adv_timeout:1;
 		unsigned							software_reset:1;
@@ -165,9 +164,16 @@ typedef struct
 
 typedef struct
 {
+	bool									enable;
+	bool									is_lock;
+} ble_pickit_security_t;
+
+typedef struct
+{
 	ble_pickit_reset_type_t                 reset_type;
     char                                    software_version[8];
-    char                                    name[16];
+    char                                    name[20];
+	ble_pickit_security_t                   security_connection;
 } ble_pickit_device_infos_t;
 
 typedef struct
@@ -209,16 +215,17 @@ typedef struct
 	.adv_timeout = 18000                                        \
 }
 
-#define BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name)                 \
+#define BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name, _security)      \
 {                                                               \
 	.reset_type = 0,                                            \
     .software_version = {"x.xx.xx"},                            \
-    .name = {_name}                                             \
+    .name = {_name},                                            \
+    .security_connection = { _security, 0}                      \
 }
 
-#define BLE_PICKIT_STATUS_INSTANCE(_name)                       \
+#define BLE_PICKIT_STATUS_INSTANCE(_name, _security)            \
 {                                                       		\
-	.device = BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name),          \
+	.device = BLE_PICKIT_DEVICE_INFOS_INSTANCE(_name, _security),\
 	.hardware = {false, false, true},							\
 	.connection = {0},											\
 	.preferred_params = BLE_PICKIT_PREFERRED_PARAMS_INSTANCE(),	\
@@ -226,16 +233,16 @@ typedef struct
 	.characteristics = {0, {{0}}, {{0}}}						\
 }
 
-#define BLE_PICKIT_INSTANCE(_name)                              \
+#define BLE_PICKIT_INSTANCE(_name, _security)                   \
 {                                                               \
-    .status = BLE_PICKIT_STATUS_INSTANCE(_name),                \
+    .status = BLE_PICKIT_STATUS_INSTANCE(_name, _security),     \
 	.uart = {0},                                                \
     .flags = {{0}},                                             \
     .app_buffer = {0},                                          \
 }
 
-#define BLE_PICKIT_DEF(_var, _name)                             \
-static ble_pickit_t _var = BLE_PICKIT_INSTANCE(_name)
+#define BLE_PICKIT_DEF(_var, _name, _security)                  \
+static ble_pickit_t _var = BLE_PICKIT_INSTANCE(_name, _security)
 
 typedef void (*p_ble_function)(uint8_t *buffer);
 

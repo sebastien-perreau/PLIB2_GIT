@@ -15,10 +15,11 @@ static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
 static const char __ack[] = "ACK";
 static const char __nak[] = "NAK";
 
+static void _security_mode(uint8_t *buffer);
+static void _name(uint8_t *buffer);
+static void _software_version(uint8_t *buffer);
 static void _pa_lna(uint8_t *buffer);
 static void _led_status(uint8_t *buffer);
-static void _name(uint8_t *buffer);
-static void _version(uint8_t *buffer);
 static void _adv_interval(uint8_t *buffer);
 static void _adv_timeout(uint8_t *buffer);
 
@@ -35,10 +36,11 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr);
 
 static void __boot_sequence()
 {
-    p_ble->flags.pa_lna = 1;
-    p_ble->flags.led_status = 1;
+    p_ble->flags.security_mode = 1;
     p_ble->flags.name = 1;
     p_ble->flags.software_version = 1;
+    p_ble->flags.pa_lna = 1;
+    p_ble->flags.led_status = 1;
     p_ble->flags.adv_interval = 1;
     p_ble->flags.adv_timeout = 1;
     
@@ -179,15 +181,6 @@ void ble_stack_tasks()
                         }
                     }                
                     break;
-
-                case ID_PA_LNA:
-                    if ((p_ble->uart.rx_buffer[2]) != p_ble->status.hardware.pa_lna_enable)
-                    {
-                        p_ble->status.hardware.pa_lna_enable = p_ble->uart.rx_buffer[2];
-                        p_ble->status.device.reset_type = RESET_BLE_PICKIT;
-                        p_ble->flags.reset_requested = 1;
-                    }
-                    break;
                     
                 case ID_NAME:
                     memcpy(p_ble->status.device.name, &p_ble->uart.rx_buffer[2], p_ble->uart.rx_buffer[1]);
@@ -201,6 +194,15 @@ void ble_stack_tasks()
                     p_ble->status.device.software_version[p_ble->uart.rx_buffer[1]] = '\0';
                     break;
 
+                case ID_PA_LNA:
+                    if ((p_ble->uart.rx_buffer[2]) != p_ble->status.hardware.pa_lna_enable)
+                    {
+                        p_ble->status.hardware.pa_lna_enable = p_ble->uart.rx_buffer[2];
+                        p_ble->status.device.reset_type = RESET_BLE_PICKIT;
+                        p_ble->flags.reset_requested = 1;
+                    }
+                    break;
+
                 case ID_HARDWARE_STATUS:
                     p_ble->status.hardware.is_hardware_status_updated = true;
                     p_ble->status.hardware.pa_lna_enable = GET_BIT(p_ble->uart.rx_buffer[2], 0);
@@ -210,7 +212,8 @@ void ble_stack_tasks()
                 case ID_BLE_CONNECTION_STATUS:                
                     p_ble->status.connection.is_connection_status_updated = true;
                     p_ble->status.connection.is_in_advertising_mode = GET_BIT(p_ble->uart.rx_buffer[2], 0);
-                    p_ble->status.connection.is_connected_to_a_central = GET_BIT(p_ble->uart.rx_buffer[2], 1);                    
+                    p_ble->status.connection.is_connected_to_a_central = GET_BIT(p_ble->uart.rx_buffer[2], 1);
+                    p_ble->status.device.security_connection.is_lock = GET_BIT(p_ble->uart.rx_buffer[2], 7);
                     break;
 
                 case ID_BLE_PARAMETERS_STATUS:     
@@ -317,6 +320,27 @@ void ble_stack_tasks()
                     }
                 }
             }
+            else if (p_ble->flags.security_mode)
+            {
+                if (!vsd_outgoing_message_uart(_security_mode))
+                {
+                    p_ble->flags.security_mode = 0;
+                }
+            }
+            else if (p_ble->flags.name)
+            {
+                if (!vsd_outgoing_message_uart(_name))
+                {
+                    p_ble->flags.name = 0;
+                }
+            }
+            else if (p_ble->flags.software_version)
+            {
+                if (!vsd_outgoing_message_uart(_software_version))
+                {
+                    p_ble->flags.software_version = 0;
+                }
+            }
             else if (p_ble->flags.pa_lna)
             {
                 if (!vsd_outgoing_message_uart(_pa_lna))
@@ -329,20 +353,6 @@ void ble_stack_tasks()
                 if (!vsd_outgoing_message_uart(_led_status))
                 {
                     p_ble->flags.led_status = 0;
-                }
-            }
-            else if (p_ble->flags.name)
-            {
-                if (!vsd_outgoing_message_uart(_name))
-                {
-                    p_ble->flags.name = 0;
-                }
-            }
-            else if (p_ble->flags.software_version)
-            {
-                if (!vsd_outgoing_message_uart(_version))
-                {
-                    p_ble->flags.software_version = 0;
                 }
             }
             else if (p_ble->flags.adv_interval)
@@ -408,37 +418,18 @@ void ble_stack_tasks()
     }
 }
 
-static void _pa_lna(uint8_t *buffer)
+static void _security_mode(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
-	buffer[0] = ID_PA_LNA;	
-    buffer[1] = 1;
-    buffer[2] = p_ble->status.hardware.pa_lna_enable;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
-}
-
-static void _led_status(uint8_t *buffer)
-{
-	uint16_t crc = 0;
-
-	buffer[0] = ID_LED_STATUS;
-    buffer[1] = 1;
-    buffer[2] = p_ble->status.hardware.led_enable;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
+	buffer[0] = ID_SECURITY_MODE;
+	buffer[1] = 1;
+    buffer[2] = p_ble->status.device.security_connection.enable;
 }
 
 static void _name(uint8_t *buffer)
 {
     uint8_t i = 0;
-	uint16_t crc = 0;
-
+    
 	buffer[0] = ID_NAME;
-	
 	for (i = 0 ; i < 16 ; i++)
     {
         if (p_ble->status.device.name[i] == '\0')
@@ -448,54 +439,47 @@ static void _name(uint8_t *buffer)
         buffer[2+i] = p_ble->status.device.name[i];
     }
     buffer[1] = i;
-    
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
-static void _version(uint8_t *buffer)
+static void _software_version(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_SOFTWARE_VERSION;
 	buffer[1] = 1;
     buffer[2] = 0x00;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
+}
+
+static void _pa_lna(uint8_t *buffer)
+{
+	buffer[0] = ID_PA_LNA;	
+    buffer[1] = 1;
+    buffer[2] = p_ble->status.hardware.pa_lna_enable;
+}
+
+static void _led_status(uint8_t *buffer)
+{
+	buffer[0] = ID_LED_STATUS;
+    buffer[1] = 1;
+    buffer[2] = p_ble->status.hardware.led_enable;
 }
 
 static void _adv_interval(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_ADV_INTERVAL;	
 	buffer[1] = 2;
     buffer[2] = (p_ble->status.preferred_params.adv_interval >> 8) & 0xff;
     buffer[3] = (p_ble->status.preferred_params.adv_interval >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _adv_timeout(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_ADV_TIMEOUT;	
 	buffer[1] = 2;
     buffer[2] = (p_ble->status.preferred_params.adv_timeout >> 8) & 0xff;
     buffer[3] = (p_ble->status.preferred_params.adv_timeout >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _conn_params(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_CONN_PARAMS;
     buffer[1] = 8;
     buffer[2] = (p_ble->status.preferred_params.conn_params.min_conn_interval >> 8) & 0xff;
@@ -506,87 +490,55 @@ static void _conn_params(uint8_t *buffer)
     buffer[7] = (p_ble->status.preferred_params.conn_params.slave_latency >> 0) & 0xff;
     buffer[8] = (p_ble->status.preferred_params.conn_params.conn_sup_timeout >> 8) & 0xff;
     buffer[9] = (p_ble->status.preferred_params.conn_params.conn_sup_timeout >> 0) & 0xff;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _phy_param(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_PHY_PARAM;
     buffer[1] = 1;
     buffer[2] = p_ble->status.preferred_params.phy;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _att_mtu_param(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_ATT_MTU_PARAM;
     buffer[1] = 1;
     buffer[2] = p_ble->status.preferred_params.att_mtu;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _data_length_param(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_DATA_LENGTH_PARAM;
     buffer[1] = 1;
     buffer[2] = p_ble->status.preferred_params.data_length;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _conn_evt_length_ext_param(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_BLE_CONN_EVT_LENGTH_EXT_PARAM;
     buffer[1] = 1;
     buffer[2] = p_ble->status.preferred_params.conn_evt_len_ext;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _reset_request(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_SOFTWARE_RESET;
 	buffer[1] = 1;
 	buffer[2] = p_ble->status.device.reset_type;
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static void _buffer(uint8_t *buffer)
 {
-	uint16_t crc = 0;
-
 	buffer[0] = ID_CHAR_BUFFER;
 	buffer[1] = p_ble->app_buffer.out_length;
     memcpy(&buffer[2], p_ble->app_buffer.out_data, p_ble->app_buffer.out_length);
-	crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-	buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-	buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 }
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 {
     static state_machine_t sm;
 	static uint8_t buffer[256] = {0};
+    uint16_t crc = 0;
 
 	switch (sm.index)
 	{
@@ -622,6 +574,9 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 		case 3:
             
             (*ptr)(buffer);
+            crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+            buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+            buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 
             dma_tx.src_start_addr = (void *)buffer;
             dma_tx.dst_start_addr = (void *)uart_get_tx_reg(m_uart_id);
