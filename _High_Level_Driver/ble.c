@@ -73,9 +73,9 @@ static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t
     }
 }
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_params)
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit)
 {       
-    p_ble = p_ble_params;
+    p_ble = p_ble_pickit;
     m_uart_id = uart_id;
     m_dma_id = dma_get_free_channel();
     
@@ -545,7 +545,8 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 
         case 0:
             sm.index++;
-            sm.tick = mGetTick();
+            sm.tick = mGetTick();            
+			/* no break */
         case 1:
             
             if (uart_transmission_has_completed(m_uart_id) && !p_ble->uart.receive_in_progress)
@@ -562,7 +563,10 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
         		if (uart_transmission_has_completed(m_uart_id) && !p_ble->uart.receive_in_progress)
 				{
 					sm.index++;
-					sm.tick = mGetTick();
+					(*ptr)(buffer);
+                    crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+                    buffer[buffer[1]+2] = (crc >> 8) & 0xff;
+                    buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 				}
         		else
         		{
@@ -572,11 +576,6 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
             break;
             
 		case 3:
-            
-            (*ptr)(buffer);
-            crc = fu_crc_16_ibm(buffer, buffer[1]+2);
-            buffer[buffer[1]+2] = (crc >> 8) & 0xff;
-            buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 
             dma_tx.src_start_addr = (void *)buffer;
             dma_tx.dst_start_addr = (void *)uart_get_tx_reg(m_uart_id);

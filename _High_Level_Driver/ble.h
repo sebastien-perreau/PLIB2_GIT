@@ -35,6 +35,9 @@
 #define BLE_GAP_PHY_1MBPS                   0x01
 #define BLE_GAP_PHY_2MBPS                   0x02
 
+#define BLE_SECURITY_ENABLED                1
+#define BLE_SECURITY_DISABLED               0
+
 typedef enum
 {
 	RESET_BLE_PICKIT 						= 1,
@@ -246,7 +249,53 @@ static ble_pickit_t _var = BLE_PICKIT_INSTANCE(_name, _security)
 
 typedef void (*p_ble_function)(uint8_t *buffer);
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_params);
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit);
 void ble_stack_tasks();
+
+__STATIC_INLINE void ble_security_enabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.device.security_connection.enable = true;
+    p_ble_pickit->flags.security_mode = 1;
+}
+
+__STATIC_INLINE void ble_security_disabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.device.security_connection.enable = false;
+    p_ble_pickit->flags.security_mode = 1;
+}
+
+__STATIC_INLINE void ble_set_name(ble_pickit_t * p_ble_pickit, char *name, uint8_t length)
+{
+    memcpy(p_ble_pickit->status.device.name, name, length);
+    p_ble_pickit->status.device.name[length] = '\0';
+    p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
+    p_ble_pickit->flags.reset_requested = 1;
+}
+
+__STATIC_INLINE void ble_pa_lna_enabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.hardware.pa_lna_enable = true;
+    p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
+    p_ble_pickit->flags.reset_requested = 1;
+}
+
+__STATIC_INLINE void ble_pa_lna_disabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.hardware.pa_lna_enable = false;
+    p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
+    p_ble_pickit->flags.reset_requested = 1;
+}
+
+__STATIC_INLINE void ble_led_status_enabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.hardware.led_enable = true;
+    p_ble_pickit->flags.led_status = 1;
+}
+
+__STATIC_INLINE void ble_led_status_disabled(ble_pickit_t * p_ble_pickit)
+{
+    p_ble_pickit->status.hardware.led_enable = false;
+    p_ble_pickit->flags.led_status = 1;
+}
 
 #endif
