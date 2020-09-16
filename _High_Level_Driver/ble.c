@@ -8,6 +8,7 @@
 #include "../PLIB2.h"
 
 static ble_pickit_t * p_ble;
+static acquisitions_params_t *p_acquisitions;
 static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
 static DMA_MODULE m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
@@ -30,7 +31,8 @@ static void _data_length_param(uint8_t *buffer);
 static void _conn_evt_length_ext_param(uint8_t *buffer);
 
 static void _reset_request(uint8_t *buffer);
-static void _buffer(uint8_t *buffer);
+static void _app_buffer(uint8_t *buffer);
+static void _app_spc(uint8_t *buffer);
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr);
 
@@ -73,9 +75,10 @@ static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t
     }
 }
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit)
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * _p_ble_pickit, acquisitions_params_t *_p_acquisitions)
 {       
-    p_ble = p_ble_pickit;
+    p_ble = _p_ble_pickit;
+    p_acquisitions = _p_acquisitions;
     m_uart_id = uart_id;
     m_dma_id = dma_get_free_channel();
     
@@ -137,7 +140,6 @@ void ble_stack_tasks()
 
         if (p_ble->uart.message_type == UART_NEW_MESSAGE)
         {
-            uint16_t i;
             uint16_t crc_calc, crc_uart;
 
             p_ble->uart.message_type = UART_NO_MESSAGE;
@@ -266,6 +268,12 @@ void ble_stack_tasks()
                     p_ble->status.preferred_params.conn_evt_len_ext = p_ble->uart.rx_buffer[2];                    
                     p_ble->status.device.reset_type = RESET_BLE_PICKIT;
                     p_ble->flags.reset_requested = 1;
+                    break;
+                    
+                case ID_CHAR_SPC_STATUS:
+                    p_ble->app_spc.time_x20ms = (p_acquisitions != NULL) ? p_ble->uart.rx_buffer[2] : 0;
+                    p_ble->flags.notif_app_spc = (p_acquisitions != NULL) ? 1 : 0;
+                    mUpdateTick(p_ble->app_spc.tick);
                     break;
                     
                 case ID_CHAR_BUFFER:
@@ -408,11 +416,27 @@ void ble_stack_tasks()
             {
                 if (p_ble->status.characteristics._0x1501.is_notify_enabled)
                 {                
-                    if (!vsd_outgoing_message_uart(_buffer))
+                    if (!vsd_outgoing_message_uart(_app_buffer))
                     {
                         p_ble->flags.notif_app_buffer = 0;
                     }
                 }
+            }
+            else if (p_ble->flags.notif_app_spc)
+            {            
+                if (!vsd_outgoing_message_uart(_app_spc))
+                {
+                    p_ble->flags.notif_app_spc = 0;
+                }
+            }
+        }
+        
+        if (p_ble->app_spc.time_x20ms > 0)
+        {
+            if (mTickCompare(p_ble->app_spc.tick) >= (p_ble->app_spc.time_x20ms * TICK_20MS))
+            {
+                mUpdateTick(p_ble->app_spc.tick);
+                p_ble->flags.notif_app_spc = 1;
             }
         }
     }
@@ -527,11 +551,28 @@ static void _reset_request(uint8_t *buffer)
 	buffer[2] = p_ble->status.device.reset_type;
 }
 
-static void _buffer(uint8_t *buffer)
+static void _app_buffer(uint8_t *buffer)
 {
 	buffer[0] = ID_CHAR_BUFFER;
 	buffer[1] = p_ble->app_buffer.out_length;
     memcpy(&buffer[2], p_ble->app_buffer.out_data, p_ble->app_buffer.out_length);
+}
+
+static void _app_spc(uint8_t *buffer)
+{
+    uint16_t _temperature = fu_get_integer_value(p_acquisitions->ntc.temperature * 10.0);
+    uint8_t _voltage = fu_get_integer_value(p_acquisitions->voltage.average * 10.0);
+    uint8_t _current = fu_get_integer_value(p_acquisitions->current.average * 1000.0);    
+    
+	buffer[0] = ID_CHAR_SPC_STATUS;
+	buffer[1] = 7;
+    buffer[2] = p_ble->app_spc.time_x20ms;
+    buffer[3] = _temperature >> 0;
+    buffer[4] = _temperature >> 8;
+    buffer[5] = _voltage;
+    buffer[6] = _current;
+    buffer[7] = p_acquisitions->speed >> 0;
+    buffer[8] = p_acquisitions->speed >> 8;
 }
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)

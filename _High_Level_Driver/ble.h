@@ -62,6 +62,12 @@ typedef struct
     uint8_t                                 out_length;
 } ble_pickit_char_buffer_t;
 
+typedef struct
+{
+    uint8_t                                 time_x20ms;
+    uint64_t                                tick;
+} ble_pickit_char_spc_t;
+
 typedef union
 {
     struct
@@ -82,6 +88,7 @@ typedef union
         unsigned                            ble_pref_data_length_param:1;
         unsigned                            ble_pref_conn_evt_length_ext_param:1;
         
+        unsigned                            notif_app_spc:1;
         unsigned                            notif_app_buffer:1;
     };
     struct
@@ -194,6 +201,7 @@ typedef struct
     ble_pickit_status_t                     status;
 	ble_pickit_serial_uart_t                uart;   
     ble_pickit_flags_t                      flags;
+    ble_pickit_char_spc_t                   app_spc;
     ble_pickit_char_buffer_t                app_buffer;
 } ble_pickit_t;
 
@@ -241,6 +249,7 @@ typedef struct
     .status = BLE_PICKIT_STATUS_INSTANCE(_name, _security),     \
 	.uart = {0},                                                \
     .flags = {{0}},                                             \
+    .app_spc = {0},                                             \
     .app_buffer = {0},                                          \
 }
 
@@ -249,7 +258,7 @@ static ble_pickit_t _var = BLE_PICKIT_INSTANCE(_name, _security)
 
 typedef void (*p_ble_function)(uint8_t *buffer);
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit);
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit, acquisitions_params_t *p_acquisitions);
 void ble_stack_tasks();
 
 __STATIC_INLINE void ble_security_enabled(ble_pickit_t * p_ble_pickit)
