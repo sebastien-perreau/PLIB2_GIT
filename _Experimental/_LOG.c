@@ -10,23 +10,21 @@
 #include "../PLIB2.h"
 
 static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
-static DMA_MODULE m_dma_id = DMA_NUMBER_OF_MODULES;
+static dma_module_type_t m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {0};
 
 void log_init(UART_MODULE id_uart, uint32_t data_rate)
 {
     m_uart_id = id_uart;
-    m_dma_id = dma_get_free_channel();
     
     uart_init(  id_uart, NULL, IRQ_NONE, data_rate, UART_STD_PARAMS);
     
-    dma_init(   m_dma_id, 
-                NULL, 
-                DMA_CONT_PRIO_2, 
-                DMA_INT_NONE, 
-                DMA_EVT_START_TRANSFER_ON_IRQ, 
-                uart_get_tx_irq(id_uart), 
-                0xff);
+    m_dma_id = dma_init(    NULL, 
+                            DMA_CONT_PRIO_2, 
+                            DMA_INT_NONE, 
+                            DMA_EVT_START_TRANSFER_ON_IRQ, 
+                            uart_get_tx_irq(id_uart), 
+                            0xff);
 }
 
 static uint16_t _transform_integer_to_string(char *p_buffer, uint16_t index_p_buffer, uint32_t value, STR_BASE_t _base, uint8_t number_of_char)

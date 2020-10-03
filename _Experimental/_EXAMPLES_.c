@@ -121,7 +121,7 @@ void _EXAMPLE_TIMER()
 
 static uint8_t buff_src[200] = {0};
 static uint8_t buff_dst[200] = {0};
-static void _example_dma_ram_to_ram_event_handler(uint8_t id, DMA_CHANNEL_FLAGS flags)
+static void _example_dma_ram_to_ram_event_handler(uint8_t id, dma_channel_flags_type_t flags)
 {
     if ((flags & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
     {
@@ -139,7 +139,7 @@ void _EXAMPLE_DMA_RAM_TO_RAM()
     static dma_channel_transfer_t dma_tx = {buff_src, buff_dst, 200, 200, 20, 0x0000};
     static uint8_t loop_counter = 1;
     static uint8_t i;
-    static DMA_MODULE dma_id;
+    static dma_module_type_t dma_id;
     
     switch (sm_example.index)
     {
@@ -148,15 +148,12 @@ void _EXAMPLE_DMA_RAM_TO_RAM()
             mUpdateLedStatusD2(OFF);
             mUpdateLedStatusD3(OFF);
             
-            dma_id = dma_get_free_channel();
-            
-            dma_init(   dma_id, 
-                        _example_dma_ram_to_ram_event_handler, 
-                        DMA_CONT_PRIO_1, 
-                        DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
-                        DMA_EVT_NONE, 
-                        0xff, 
-                        0xff);
+            dma_id = dma_init(  _example_dma_ram_to_ram_event_handler, 
+                                DMA_CONT_PRIO_1, 
+                                DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
+                                DMA_EVT_NONE, 
+                                0xff, 
+                                0xff);
             
             for (i = 0 ; i < 200 ; i++)
             {
@@ -231,16 +228,18 @@ void _EXAMPLE_DMA_RAM_TO_RAM()
     disable).
 
  *********************************************************************************************/
-static void _example_dma_uart_event_handler(uint8_t id, DMA_CHANNEL_FLAGS flags)
+static dma_module_type_t dma_tx_id, dma_rx_id;
+
+static void _example_dma_uart_event_handler(uint8_t id, dma_channel_flags_type_t flags)
 {
     
     if ((flags & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
     {
-        if (id == DMA6)
+        if (id == dma_tx_id)
         {
             mToggleLedStatusD2();
         }
-        else if (id == DMA7)
+        else if (id == dma_rx_id)
         {
             mToggleLedStatusD3();   
         }
@@ -258,8 +257,8 @@ void _EXAMPLE_DMA_UART()
     static state_machine_t sm_example = {0};
     static UART_MODULE uart_id = UART1;
     static uint8_t i;
-    static dma_channel_transfer_t dma6_tx = {buff_src, NULL, 200, 1, 1, 0x0000};
-    static dma_channel_transfer_t dma7_rx = {NULL, buff_src, 1, 200, 1, 0xdead};
+    static dma_channel_transfer_t dma_ch_transfer_tx = {buff_src, NULL, 200, 1, 1, 0x0000};
+    static dma_channel_transfer_t dma_ch_transfer_rx = {NULL, buff_src, 1, 200, 1, 0xdead};    
     
     switch (sm_example.index)
     {
@@ -274,34 +273,32 @@ void _EXAMPLE_DMA_UART()
                         UART_BAUDRATE_2M, 
                         UART_STD_PARAMS);
             
-            dma_init(   DMA6, 
-                        _example_dma_uart_event_handler, 
-                        DMA_CONT_PRIO_2, 
-                        DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
-                        DMA_EVT_START_TRANSFER_ON_IRQ, 
-                        uart_get_tx_irq(uart_id), 
-                        0xff);
+            dma_tx_id = dma_init(   _example_dma_uart_event_handler, 
+                                    DMA_CONT_PRIO_2, 
+                                    DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    uart_get_tx_irq(uart_id), 
+                                    0xff);
             
-            dma_init(   DMA7, 
-                        _example_dma_uart_event_handler, 
-                        DMA_CONT_PRIO_0 | DMA_CONT_PATTERN_2_BYTES | DMA_CONT_AUTO_ENABLE, 
-                        DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
-                        DMA_EVT_START_TRANSFER_ON_IRQ | DMA_EVT_ABORD_TRANSFER_ON_PATTERN_MATCH, 
-                        uart_get_rx_irq(uart_id), 
-                        0xff);
+            dma_rx_id = dma_init(   _example_dma_uart_event_handler, 
+                                    DMA_CONT_PRIO_0 | DMA_CONT_PATTERN_2_BYTES | DMA_CONT_AUTO_ENABLE, 
+                                    DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ | DMA_EVT_ABORD_TRANSFER_ON_PATTERN_MATCH, 
+                                    uart_get_rx_irq(uart_id), 
+                                    0xff);
             
-            dma6_tx.dst_start_addr = (void *) uart_get_tx_reg(uart_id);
-            dma7_rx.src_start_addr = (void *) uart_get_rx_reg(uart_id);
+            dma_ch_transfer_tx.dst_start_addr = (void *) uart_get_tx_reg(uart_id);
+            dma_ch_transfer_rx.src_start_addr = (void *) uart_get_rx_reg(uart_id);
             
             for (i = 0 ; i < 200 ; i++)
             {
                 buff_src[i] = i;
             }        
             
-            dma_set_transfer_params(DMA7, &dma7_rx);   
-            dma_set_transfer_params(DMA6, &dma6_tx);    
-            dma_channel_enable(DMA7, ON, false);  // Do not force the transfer (it occurs automatically when data is received - UART Rx generates the transfer)
-            dma_channel_enable(DMA6, ON, false);  // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).            
+            dma_set_transfer_params(dma_rx_id, &dma_ch_transfer_rx);   
+            dma_set_transfer_params(dma_tx_id, &dma_ch_transfer_tx);    
+            dma_channel_enable(dma_rx_id, ON, false);  // Do not force the transfer (it occurs automatically when data is received - UART Rx generates the transfer)
+            dma_channel_enable(dma_tx_id, ON, false);  // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).            
             
             sm_example.index = _MAIN;
             mUpdateTick(sm_example.tick);
@@ -310,13 +307,13 @@ void _EXAMPLE_DMA_UART()
         case _MAIN:
             
             // Do what you want...  
-            if (!dma_channel_is_enable(DMA6))
+            if (!dma_channel_is_enable(dma_tx_id))
             {
                 if (mTickCompare(sm_example.tick) >= TICK_1S)
                 {
                     mUpdateTick(sm_example.tick);
                     // Re-execute the DMA transfer RAM -> UART TX                    
-                    dma_channel_enable(DMA6, ON, true);
+                    dma_channel_enable(dma_tx_id, ON, true);
                 }
             }            
             break;
@@ -333,11 +330,11 @@ void _EXAMPLE_DMA_UART()
  ALWAYS CONFIGURE DMA RX BEFORE DMA TX !!! Otherwise the DMA RX can missed one byte.
 
  *********************************************************************************************/
-static void _example_dma_spi_event_handler(uint8_t id, DMA_CHANNEL_FLAGS flags)
+static void _example_dma_spi_event_handler(uint8_t id, dma_channel_flags_type_t flags)
 {
     if ((flags & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
     {
-        if (id == DMA6)
+        if (id == dma_tx_id)
         {            
             mToggleLedStatusD2();
         }
@@ -354,8 +351,8 @@ void _EXAMPLE_DMA_SPI()
 {
     static uint8_t i;
     static uint8_t buff_src[200] = {0};
-    static dma_channel_transfer_t dma6_tx = {buff_src, NULL, 20, 1, 1, 0x0000};
-    static dma_channel_transfer_t dma7_rx = {NULL, buff_src, 1, 20, 1, 0x0000};
+    static dma_channel_transfer_t dma_ch_transfer_tx = {buff_src, NULL, 20, 1, 1, 0x0000};
+    static dma_channel_transfer_t dma_ch_transfer_rx = {NULL, buff_src, 1, 20, 1, 0x0000};
     static state_machine_t sm_example = {0};
     
     switch (sm_example.index)
@@ -374,39 +371,37 @@ void _EXAMPLE_DMA_SPI()
                         10000000, 
                         SPI_STD_MASTER_CONFIG);
 
-            dma_init(   DMA6, 
-                        _example_dma_spi_event_handler, 
-                        DMA_CONT_PRIO_3, 
-                        DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
-                        DMA_EVT_START_TRANSFER_ON_IRQ, 
-                        spi_get_tx_irq(SPI1), 
-                        0xff);
+            dma_tx_id = dma_init(   _example_dma_spi_event_handler, 
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_TRANSFER_ABORD | DMA_INT_BLOCK_TRANSFER_DONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    spi_get_tx_irq(SPI1), 
+                                    0xff);
             
-            dma_init(   DMA7, 
-                        NULL, 
-                        DMA_CONT_PRIO_3, 
-                        DMA_INT_NONE, 
-                        DMA_EVT_START_TRANSFER_ON_IRQ, 
-                        spi_get_rx_irq(SPI1), 
-                        0xff);
+            dma_rx_id = dma_init(   NULL, 
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_NONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    spi_get_rx_irq(SPI1), 
+                                    0xff);
             
-            dma6_tx.dst_start_addr = (void *) spi_get_tx_reg(SPI1);
-            dma7_rx.src_start_addr = (void *) spi_get_rx_reg(SPI1);
+            dma_ch_transfer_tx.dst_start_addr = (void *) spi_get_tx_reg(SPI1);
+            dma_ch_transfer_rx.src_start_addr = (void *) spi_get_rx_reg(SPI1);
             
             for (i = 0 ; i < 200 ; i++)
             {
                 buff_src[i] = i;
             }
             
-            dma6_tx.src_size = 30;
-            dma7_rx.dst_size = dma6_tx.src_size;
+            dma_ch_transfer_tx.src_size = 30;
+            dma_ch_transfer_rx.dst_size = dma_ch_transfer_tx.src_size;
             
             mClrIO(__PE0);
             
-            dma_set_transfer_params(DMA7, &dma7_rx);   
-            dma_set_transfer_params(DMA6, &dma6_tx);    
-            dma_channel_enable(DMA7, ON, false);  // Do not force the transfer (it occurs automatically when data is received - SPI Rx generates the transfer)
-            dma_channel_enable(DMA6, ON, false);  // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).            
+            dma_set_transfer_params(dma_rx_id, &dma_ch_transfer_rx);   
+            dma_set_transfer_params(dma_tx_id, &dma_ch_transfer_tx);    
+            dma_channel_enable(dma_rx_id, ON, false);  // Do not force the transfer (it occurs automatically when data is received - SPI Rx generates the transfer)
+            dma_channel_enable(dma_tx_id, ON, false);  // Do not take care of the 'force_transfer' boolean value because the DMA channel is configure to execute a transfer on event when Tx is ready (IRQ source is Tx of a peripheral - see notes of dma_set_transfer_params()).            
             
             sm_example.index = _MAIN;
             break;
@@ -414,9 +409,9 @@ void _EXAMPLE_DMA_SPI()
         case _MAIN:
             
             // Do what you want...
-            if ((dma_get_flags(DMA7) & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
+            if ((dma_get_flags(dma_rx_id) & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
             {
-                dma_clear_flags(DMA7, DMA_FLAG_BLOCK_TRANSFER_DONE);  
+                dma_clear_flags(dma_rx_id, DMA_FLAG_BLOCK_TRANSFER_DONE);  
                 mSetIO(__PE0);
                 mUpdateLedStatusD3(ON);             
             }

@@ -36,15 +36,46 @@ const uint8_t dma_irq[] =
 
 /*******************************************************************************
  * Function:
- *      void dma_init(  DMA_MODULE id, 
- *                   dma_event_handler_t evt_handler, 
- *                   DMA_CHANNEL_CONTROL dma_channel_control,
- *                   DMA_CHANNEL_INTERRUPT dma_channel_interrupt,
- *                   DMA_CHANNEL_EVENT dma_channel_event,
- *                   uint8_t irq_num_tx_start,
- *                   uint8_t irq_num_tx_abord)
+ *      static dma_module_type_t __dma_get_free_channel()
  *
- * Description:
+ * Overview:
+ *      This routine is used to get a free DMA channel. The first channel to be used
+ *      is DMA0 and so on up to channel DMA7.    
+ * 
+ * Input:
+ *      none
+ * 
+ * Output:
+ *      The next free DMA channel.
+ ******************************************************************************/
+static dma_module_type_t __dma_get_free_channel()
+{
+    dma_module_type_t i;
+    for (i = DMA0 ; i < DMA_NUMBER_OF_MODULES ; i++)
+    {
+        if (!dma_channel_is_using[i])
+        {
+            dma_channel_is_using[i] = true;
+            break;
+        }
+    }
+    if (i == DMA_NUMBER_OF_MODULES)
+    {
+        __program_errors(__PE_DMA_NO_MORE_FREE_CHANNEL);
+    }
+    return i;
+}
+
+/*******************************************************************************
+ * Function:
+ *      dma_module_type_t dma_init( dma_event_handler_t evt_handler, 
+ *                           dma_channel_control_type_t dma_channel_control,
+ *                           dma_channel_interrupt_type_t dma_channel_interrupt,
+ *                           dma_channel_event_type_t dma_channel_event,
+ *                           uint8_t irq_num_tx_start,
+ *                           uint8_t irq_num_tx_abord)
+ *
+ * Overview:
  *      This routine is used to initialize a DMA module.
  *   
  *      When using Pattern Match mode and a pattern is detected then a DMA_INT_BLOCK_TRANSFER_DONE
@@ -56,30 +87,30 @@ const uint8_t dma_irq[] =
  *      after a BLOCK_TRANSFER_DONE. Thus it is not necessary to re-configure the channel
  *      with the dma_set_transfer_params routine. 
  *
- * Parameters:
- *      id                      - The DMA module you want to use.
+ * Input:
  *      evt_handler             - The handler (function) to call when an interruption occurs.
- *      dma_channel_control     - The DMA Channel Control Register (see DMA_CHANNEL_CONTROL).
- *      dma_channel_interrupt   - The DMA Channel Interrupt Register (see DMA_CHANNEL_INTERRUPT).
+ *      dma_channel_control     - The DMA Channel Control Register (see dma_channel_control_type_t).
+ *      dma_channel_interrupt   - The DMA Channel Interrupt Register (see dma_channel_interrupt_type_t).
  *                              It manages the type of interruption and is also used, in this routine,
  *                              to clear all channel flags.
- *      dma_channel_event       - The DMA Channel Event Register (see DMA_CHANNEL_EVENT). It is used
+ *      dma_channel_event       - The DMA Channel Event Register (see dma_channel_event_type_t). It is used
  *                              to setup the type of event for start transfer, abord transfer and/or 
  *                              pattern match abord.
  *      irq_num_tx_start        - The IRQ number for start event transfer (e.i: _UART1_TX_IRQ).
  *      irq_num_tx_abord        - The IRQ number for abord event transfer (e.i: _TIMER_1_IRQ).
  * 
- * Return:
- *      none
+ * Output:
+ *      It returns the DMA channel which has been initialized (DMA0..DMA7).
  ******************************************************************************/
-void dma_init(  DMA_MODULE id, 
-                dma_event_handler_t evt_handler, 
-                DMA_CHANNEL_CONTROL dma_channel_control,
-                DMA_CHANNEL_INTERRUPT dma_channel_interrupt,
-                DMA_CHANNEL_EVENT dma_channel_event,
-                uint8_t irq_num_tx_start,
-                uint8_t irq_num_tx_abord)
+dma_module_type_t dma_init( dma_event_handler_t evt_handler, 
+                            dma_channel_control_type_t dma_channel_control,
+                            dma_channel_interrupt_type_t dma_channel_interrupt,
+                            dma_channel_event_type_t dma_channel_event,
+                            uint8_t irq_num_tx_start,
+                            uint8_t irq_num_tx_abord)
 {   
+    dma_module_type_t id = __dma_get_free_channel();
+    
     dma_channel_is_using[id] = true;
     
     dma_event_handler[id] = evt_handler;
@@ -96,6 +127,8 @@ void dma_init(  DMA_MODULE id,
     // Set DMA Channel Interrupt Control Register
     p_dma_channels_registers_array[id]->DCHINTCLR = DMA_INT_ALL;
     p_dma_channels_registers_array[id]->DCHINTSET = (dma_channel_interrupt & 0x00ff0000);
+        
+    return id;
 }
 
 /*******************************************************************************
@@ -152,39 +185,7 @@ void dma_resume(uint32_t suspend_status)
 
 /*******************************************************************************
  * Function:
- *      DMA_MODULE dma_get_free_channel()
- *
- * Description:
- *      This routine is used to get a free DMA channel. The first channel to be used
- *      is DMA0 and so on up to channel DMA7.    
- * 
- * Parameters:
- *      none
- * 
- * Return:
- *      The next free DMA channel.
- ******************************************************************************/
-DMA_MODULE dma_get_free_channel()
-{
-    DMA_MODULE i;
-    for (i = DMA0 ; i < DMA_NUMBER_OF_MODULES ; i++)
-    {
-        if (!dma_channel_is_using[i])
-        {
-            dma_channel_is_using[i] = true;
-            break;
-        }
-    }
-    if (i == DMA_NUMBER_OF_MODULES)
-    {
-        __program_errors(__PE_DMA_NO_MORE_FREE_CHANNEL);
-    }
-    return i;
-}
-
-/*******************************************************************************
- * Function:
- *      void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_event)
+ *      void dma_set_channel_event_control(dma_module_type_t id, dma_channel_event_type_t dma_channel_event)
  *
  * Description:
  *      This routine is used to set the channel event control of a DMA module. This setup is
@@ -194,14 +195,14 @@ DMA_MODULE dma_get_free_channel()
  *
  * Parameters:
  *      id                      - The DMA module you want to use.
- *      dma_channel_event       - The DMA Channel Event Register (see DMA_CHANNEL_EVENT). It is used
+ *      dma_channel_event       - The DMA Channel Event Register (see dma_channel_event_type_t). It is used
  *                              to setup the type of event for start transfer, abord transfer and/or 
  *                              pattern match abord.
  * 
  * Return:
  *      none
  ******************************************************************************/
-void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_event)
+void dma_set_channel_event_control(dma_module_type_t id, dma_channel_event_type_t dma_channel_event)
 {
     dma_abord_transfer(id);
     
@@ -211,7 +212,7 @@ void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_
 
 /*******************************************************************************
  * Function:
- *      void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_transfer)
+ *      void dma_set_transfer_params(dma_module_type_t id, dma_channel_transfer_t * channel_transfer)
  *
  * Description:
  *      This routine is used to configure a transfer. It setup all pointers, sizes and
@@ -244,12 +245,12 @@ void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_
  *      If we DO NOT use any events to generate a DMA transfer (RAM to RAM copy by example) then we are oblige
  *      to force the DMA transfer.
  ******************************************************************************/
-void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_transfer)
+void dma_set_transfer_params(dma_module_type_t id, dma_channel_transfer_t * channel_transfer)
 {
     dma_channel_enable(id, OFF, false);
     while (dma_channel_is_enable(id));
-    p_dma_channels_registers_array[id]->DCHSSA = _VirtToPhys2(channel_transfer->src_start_addr);
-    p_dma_channels_registers_array[id]->DCHDSA = _VirtToPhys2(channel_transfer->dst_start_addr);
+    p_dma_channels_registers_array[id]->DCHSSA = _VirtToPhys(channel_transfer->src_start_addr);
+    p_dma_channels_registers_array[id]->DCHDSA = _VirtToPhys(channel_transfer->dst_start_addr);
     p_dma_channels_registers_array[id]->DCHSSIZ = channel_transfer->src_size;
     p_dma_channels_registers_array[id]->DCHDSIZ = channel_transfer->dst_size;
     p_dma_channels_registers_array[id]->DCHCSIZ = channel_transfer->cell_size;
@@ -259,7 +260,7 @@ void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_tra
 
 /*******************************************************************************
  * Function:
- *      void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
+ *      void dma_channel_enable(dma_module_type_t id, bool enable, bool force_transfer)
  *
  * Description:
  *      This routine is used to enable or disable a DMA channel.
@@ -276,7 +277,7 @@ void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_tra
  * Return:
  *      none
  ******************************************************************************/
-void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
+void dma_channel_enable(dma_module_type_t id, bool enable, bool force_transfer)
 {
     (enable) ? (p_dma_channels_registers_array[id]->DCHCONSET = DMA_CONT_CHANNEL_ENABLE) : (p_dma_channels_registers_array[id]->DCHCONCLR = DMA_CONT_CHANNEL_ENABLE);
     (force_transfer) ? (p_dma_channels_registers_array[id]->DCHECONSET = DMA_EVT_FORCE_TRANSFER) : (p_dma_channels_registers_array[id]->DCHECONCLR = DMA_EVT_FORCE_TRANSFER);
@@ -284,7 +285,7 @@ void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
 
 /*******************************************************************************
  * Function:
- *      void dma_abord_transfer(DMA_MODULE id)
+ *      void dma_abord_transfer(dma_module_type_t id)
  *
  * Description:
  *      This routine is used to abord the transfer on a DMA channel. It turns off
@@ -299,7 +300,7 @@ void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer)
  * Return:
  *      none
  ******************************************************************************/
-void dma_abord_transfer(DMA_MODULE id)
+void dma_abord_transfer(dma_module_type_t id)
 {
     p_dma_channels_registers_array[id]->DCHECONSET = DMA_EVT_ABORD_TRANSFER;
     while ((p_dma_channels_registers_array[id]->DCHECON & DMA_EVT_ABORD_TRANSFER) > 0);
@@ -307,7 +308,7 @@ void dma_abord_transfer(DMA_MODULE id)
 
 /*******************************************************************************
  * Function:
- *      bool dma_channel_is_enable(DMA_MODULE id)
+ *      bool dma_channel_is_enable(dma_module_type_t id)
  *
  * Description:
  *      This routine is used to know if the DMA channel is enabled.
@@ -318,14 +319,14 @@ void dma_abord_transfer(DMA_MODULE id)
  * Return:
  *      true if enable, false otherwise.
  ******************************************************************************/
-bool dma_channel_is_enable(DMA_MODULE id)
+bool dma_channel_is_enable(dma_module_type_t id)
 {
     return ((p_dma_channels_registers_array[id]->DCHCON & DMA_CONT_CHANNEL_ENABLE) > 0) ? 1 : 0;    
 }
 
 /*******************************************************************************
  * Function:
- *      uint16_t dma_get_index_cell_pointer(DMA_MODULE id)
+ *      uint16_t dma_get_index_cell_pointer(dma_module_type_t id)
  *
  * Description:
  *      This routine is used to get the current index of the cell pointer. When a
@@ -345,17 +346,17 @@ bool dma_channel_is_enable(DMA_MODULE id)
  * Return:
  *      The pointer index of the cell.
  ******************************************************************************/
-uint16_t dma_get_index_cell_pointer(DMA_MODULE id)
+uint16_t dma_get_index_cell_pointer(dma_module_type_t id)
 {
     return (uint16_t) p_dma_channels_registers_array[id]->DCHCPTR;
 }
 
 /*******************************************************************************
  * Function:
- *      DMA_CHANNEL_FLAGS dma_get_flags(DMA_MODULE id)
+ *      dma_channel_flags_type_t dma_get_flags(dma_module_type_t id)
  *
  * Description:
- *      This routine is used to get all the flags (see DMA_CHANNEL_FLAGS) of a DMA
+ *      This routine is used to get all the flags (see dma_channel_flags_type_t) of a DMA
  *      channel. There are up to 8 types of interruption by DMA channel (so up to 
  *      8 different flags).
  *      You can use flags without to enable interruption. Just check and handle
@@ -367,34 +368,34 @@ uint16_t dma_get_index_cell_pointer(DMA_MODULE id)
  * Return:
  *      The channel flags status.
  ******************************************************************************/
-DMA_CHANNEL_FLAGS dma_get_flags(DMA_MODULE id)
+dma_channel_flags_type_t dma_get_flags(dma_module_type_t id)
 {
-    DMA_CHANNEL_FLAGS flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
+    dma_channel_flags_type_t flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
     return flags;
 }
 
 /*******************************************************************************
  * Function:
- *      void dma_clear_flags(DMA_MODULE id, DMA_CHANNEL_FLAGS flags)
+ *      void dma_clear_flags(dma_module_type_t id, dma_channel_flags_type_t flags)
  *
  * Description:
- *      This routine is used to clear flag(s) of a DMA channel (see DMA_CHANNEL_FLAGS).
+ *      This routine is used to clear flag(s) of a DMA channel (see dma_channel_flags_type_t).
  *
  * Parameters:
  *      id          - The DMA module you want to use.
- *      flags       - The flag(s) you want to clear (see DMA_CHANNEL_FLAGS).
+ *      flags       - The flag(s) you want to clear (see dma_channel_flags_type_t).
  * 
  * Return:
  *      none
  ******************************************************************************/
-void dma_clear_flags(DMA_MODULE id, DMA_CHANNEL_FLAGS flags)
+void dma_clear_flags(dma_module_type_t id, dma_channel_flags_type_t flags)
 {
     p_dma_channels_registers_array[id]->DCHINTCLR = flags;
 }
 
 /*******************************************************************************
  * Function: 
- *      const uint8_t dma_get_irq(DMA_MODULE id)
+ *      const uint8_t dma_get_irq(dma_module_type_t id)
  * 
  * Description:
  *      This routine is used to get the IRQ number of a DMA module.
@@ -405,14 +406,14 @@ void dma_clear_flags(DMA_MODULE id, DMA_CHANNEL_FLAGS flags)
  * Return:
  *      The constant IRQ number.
  ******************************************************************************/
-const uint8_t dma_get_irq(DMA_MODULE id)
+const uint8_t dma_get_irq(dma_module_type_t id)
 {
     return dma_irq[id];
 }
 
 /*******************************************************************************
  * Function:
- *      void dma_interrupt_handler(DMA_MODULE id)
+ *      void dma_interrupt_handler(dma_module_type_t id)
  *
  * Description:
  *      This routine is called when an interruption occurs. This interrupt 
@@ -424,11 +425,105 @@ const uint8_t dma_get_irq(DMA_MODULE id)
  * Return:
  *      none
  ******************************************************************************/
-void dma_interrupt_handler(DMA_MODULE id)
+void dma_interrupt_handler(dma_module_type_t id)
 {
     if (dma_event_handler[id] != NULL)
     {
-        DMA_CHANNEL_FLAGS flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
+        dma_channel_flags_type_t flags = (p_dma_channels_registers_array[id]->DCHINT) & 0xff;
         (*dma_event_handler[id])(id, flags);
     }
+}
+
+
+
+static uint32_t __crc = 0;
+static dma_crc_t __crc_params = {0};
+static dma_module_type_t __dma_crc_id = 0;
+static dma_channel_transfer_t __dma_crc_ch_transfer = {NULL, &__crc, 0, 0, 0, 0x0000};
+
+static uint32_t __crc_non_direct_seed(uint32_t seed, uint32_t polynomial, uint8_t polynomial_order)
+{
+    uint8_t lsb;
+    uint32_t msb_mask = (1 << (polynomial_order - 1));
+    
+    while (polynomial_order-- > 0)
+    {
+        lsb = seed & 1;
+        if (lsb) 
+        {
+            seed ^= polynomial;
+        }
+        seed >>= 1;
+        if (lsb)
+        {
+            seed |= msb_mask;
+        }
+    }
+    return seed;
+}
+
+static uint32_t __crc_reflect_data(uint32_t data, uint8_t data_bit_length)
+{
+    uint32_t reflection = 0;
+    uint8_t current_bit;
+    for (current_bit = 0; current_bit < data_bit_length; ++current_bit)
+    {
+        if (data & 0x01)
+        {
+            reflection |= (1 << ((data_bit_length - 1) - current_bit));
+        }
+        data >>= 1;
+    }
+    return reflection;
+}
+
+void dma_crc_init(uint32_t polynomial_value, uint8_t polynomial_order, uint32_t seed, bool reflected_io, uint32_t xorout)
+{
+    __dma_crc_id = dma_init(  NULL, 
+                            DMA_CONT_PRIO_1, 
+                            DMA_INT_BLOCK_TRANSFER_DONE, 
+                            DMA_EVT_NONE, 
+                            0xff, 
+                            0xff);
+     
+    __crc_params.polynomial_value = polynomial_value;
+    __crc_params.polynomial_order = polynomial_order;
+    __crc_params.seed = __crc_non_direct_seed(seed, polynomial_value, polynomial_order);
+    __crc_params.reflected_io = reflected_io;
+    __crc_params.xorout = xorout;
+    
+    DCRCCON = 0;
+    DCRCXOR = __crc_params.polynomial_value;
+    DCRCDATA = __crc_params.seed;
+    DCRCCON = (__crc_params.reflected_io ? DMA_CRC_CALCULATED_LSB_FIRST : DMA_CRC_CALCULATED_MSB_FIRST) | ((__crc_params.polynomial_order - 1) << 8) | DMA_CRC_CON_ENABLE | DMA_CRC_CON_APPEND_ENABLE | DMA_CRC_CON_TYPE_LFSR | __dma_crc_id;   
+}
+
+void dma_crc_execute(void * p_data, uint32_t length)
+{
+    __dma_crc_ch_transfer.src_start_addr = p_data;
+    __dma_crc_ch_transfer.src_size = length;
+    __dma_crc_ch_transfer.dst_size = length;
+    __dma_crc_ch_transfer.cell_size = length;
+    
+    dma_set_transfer_params(__dma_crc_id, &__dma_crc_ch_transfer);  
+    dma_channel_enable(__dma_crc_id, ON, true);     // Force the transfer because no EVENT (DMA_EVT_NONE) has been set on dma_id.
+}
+
+bool dma_crc_is_calculated()
+{
+    if ((dma_get_flags(__dma_crc_id) & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
+    {
+        dma_clear_flags(__dma_crc_id, DMA_FLAG_BLOCK_TRANSFER_DONE); 
+        if (__crc_params.reflected_io)
+        {
+            __crc = __crc_reflect_data(__crc, __crc_params.polynomial_order);
+        }
+        return true;
+    }
+    return false;
+}
+
+uint32_t dma_crc_read()
+{
+    return __crc;
 }

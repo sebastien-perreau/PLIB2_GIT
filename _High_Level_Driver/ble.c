@@ -10,7 +10,7 @@
 static ble_pickit_t * p_ble_pickit;
 static acquisitions_params_t *p_acquisitions;
 static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
-static DMA_MODULE m_dma_id = DMA_NUMBER_OF_MODULES;
+static dma_module_type_t m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
 
 static const char __ack[] = "ACK";
@@ -80,17 +80,15 @@ void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * _p_ble_pic
     p_ble_pickit = _p_ble_pickit;
     p_acquisitions = _p_acquisitions;
     m_uart_id = uart_id;
-    m_dma_id = dma_get_free_channel();
     
     uart_init(  uart_id, ble_uart_event_handler, IRQ_UART_RX, data_rate, UART_STD_PARAMS);
     
-    dma_init(   m_dma_id, 
-                NULL, 
-                DMA_CONT_PRIO_2, 
-                DMA_INT_NONE, 
-                DMA_EVT_START_TRANSFER_ON_IRQ, 
-                uart_get_tx_irq(uart_id), 
-                0xff);   
+    m_dma_id = dma_init(    NULL, 
+                            DMA_CONT_PRIO_2, 
+                            DMA_INT_NONE, 
+                            DMA_EVT_START_TRANSFER_ON_IRQ, 
+                            uart_get_tx_irq(uart_id), 
+                            0xff);   
     
     p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
     p_ble_pickit->flags.reset_requested = 1;

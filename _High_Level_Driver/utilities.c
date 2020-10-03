@@ -597,6 +597,12 @@ void fu_bus_management_task(BUS_MANAGEMENT_VAR *var)
  * 
  * Description:
  *      This routine is used to calculate a CRC_16_IBM value from a data buffer.
+ *      It is also called CRC-16-USB / CRC-16-MODBUS or CRC-16.
+ *      Polynomial equation: x^16 + x^15 + x^2 + 1
+ *      Polynomial representation value: 0x8005 (set bits 0, 2 and 15 - never set
+ *      the 16th bit).
+ *      Polynomial representation value reversed: 0xa001 (the algorithm below
+ *      used the reversed polynomial value to calculate the CRC).
  * 
  * Parameters:
  *      *buffer: The pointer of data buffer.
@@ -605,10 +611,11 @@ void fu_bus_management_task(BUS_MANAGEMENT_VAR *var)
  * Return:
  *      The CRC value.
  ******************************************************************************/
-uint16_t fu_crc_16_ibm(uint8_t *buffer, uint16_t length)
+uint16_t fu_crc_16_ibm(void *_buffer, uint16_t length)
 {
-    uint16_t crc = 0;
+    uint16_t crc = 0xffff;
     uint16_t l;
+    uint8_t * buffer = _buffer;
     
     while (length--)
     {

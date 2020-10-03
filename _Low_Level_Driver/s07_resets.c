@@ -12,7 +12,7 @@
  * Function:
  *      void software_reset(void)
  * 
- * Description:
+ * Overview:
  *      Software device reset. 
  *          The following steps are performed by this function:
  *			Step 1 - Execute "unlock" sequence to access the RSWRST register.
@@ -24,10 +24,10 @@
  *      (fills the instruction pipe) or a while(1)loop to ensure no instructions can 
  *      access the bus before reset occurs.
  * 
- * Parameters:
+ * Input:
  *      none
  * 
- * Return:
+ * Output:
  *      none
  ******************************************************************************/
 void software_reset(void)
@@ -36,7 +36,7 @@ void software_reset(void)
 	uint32_t dma_status;
 	volatile uint32_t *p = &RSWRST;
 
-	system_unlock(interrupt_status, dma_status);
+	system_unlock(&interrupt_status, &dma_status);
 	RSWRSTSET=_RSWRST_SWRST_MASK;
 	*p;
 

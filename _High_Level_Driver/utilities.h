@@ -354,7 +354,7 @@ NTC_STATUS      fu_calc_ntc(ntc_settings_t ntc_params, uint32_t ntc_pull_up, uin
 void            fu_hysteresis(hysteresis_params_t *var);
 
 void            fu_bus_management_task(BUS_MANAGEMENT_VAR *dp);
-uint16_t        fu_crc_16_ibm(uint8_t *buffer, uint16_t length);
+uint16_t        fu_crc_16_ibm(void *_buffer, uint16_t length);
 
 uint32_t        fu_get_integer_value(float v);
 uint32_t        fu_get_decimal_value(float v, uint8_t numbers_after_coma);

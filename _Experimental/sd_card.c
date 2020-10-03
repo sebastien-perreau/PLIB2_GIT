@@ -1407,30 +1407,25 @@ void sd_card_deamon(sd_card_params_t *var)
         ports_reset_pin_output(var->spi_cs);
         ports_set_bit(var->spi_cs);
         
-        var->dma_tx_id = dma_get_free_channel();
-        var->dma_rx_id = dma_get_free_channel();
-        
         spi_init(   var->spi_id, 
                     NULL, 
                     IRQ_NONE, 
                     SD_CARD_FREQ_INIT, 
                     SPI_STD_MASTER_CONFIG);
                 
-        dma_init(   var->dma_tx_id, 
-                    NULL, 
-                    DMA_CONT_PRIO_3, 
-                    DMA_INT_NONE, 
-                    DMA_EVT_START_TRANSFER_ON_IRQ, 
-                    spi_get_tx_irq(var->spi_id), 
-                    0xff);
+        var->dma_tx_id = dma_init(  NULL, 
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_NONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    spi_get_tx_irq(var->spi_id), 
+                                    0xff);
         
-        dma_init(   var->dma_rx_id, 
-                    NULL, 
-                    DMA_CONT_PRIO_3, 
-                    DMA_INT_BLOCK_TRANSFER_DONE, 
-                    DMA_EVT_START_TRANSFER_ON_IRQ, 
-                    spi_get_rx_irq(var->spi_id), 
-                    0xff);
+        var->dma_rx_id = dma_init(  NULL, 
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_BLOCK_TRANSFER_DONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    spi_get_rx_irq(var->spi_id), 
+                                    0xff);
         
         var->dma_tx_params.dst_start_addr = (void *) spi_get_tx_reg(var->spi_id); 
         var->dma_rx_params.src_start_addr = (void *) spi_get_rx_reg(var->spi_id); 

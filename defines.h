@@ -46,8 +46,6 @@
                                             }
 
     #define UNUSED_PARAMETER(X)         ((void)X)
-
-    #define __STATIC_INLINE             static inline
 	
     #define bool                        BOOL
     #define true                        TRUE

@@ -17,7 +17,7 @@ typedef enum
     DMA6,
     DMA7,
     DMA_NUMBER_OF_MODULES
-} DMA_MODULE;
+} dma_module_type_t;
 
 typedef enum
 {
@@ -35,7 +35,7 @@ typedef enum
             
     DMA_CONT_PATTERN_2_BYTES                = 0x00000800,       // Pattern = 2 bytes length
     DMA_CONT_PATTERN_1_BYTE                 = 0x00000000,       // Pattern = 1 byte length
-} DMA_CHANNEL_CONTROL;
+} dma_channel_control_type_t;
 
 typedef enum
 {
@@ -46,7 +46,7 @@ typedef enum
     DMA_EVT_START_TRANSFER_ON_IRQ           = 0x00000010,
     DMA_EVT_ABORD_TRANSFER_ON_IRQ           = 0x00000008,            
     DMA_EVT_NONE                            = 0x00000000
-} DMA_CHANNEL_EVENT;
+} dma_channel_event_type_t;
 
 typedef enum
 {
@@ -62,7 +62,7 @@ typedef enum
             
     DMA_INT_NONE                            = 0x00000000,
     DMA_INT_ALL                             = 0x00ff00ff
-} DMA_CHANNEL_INTERRUPT;
+} dma_channel_interrupt_type_t;
 
 typedef enum
 {
@@ -76,7 +76,22 @@ typedef enum
     DMA_FLAG_SRC_FULL                       = 0x00000080,
             
     DMA_FLAG_ALL                            = 0x000000ff
-} DMA_CHANNEL_FLAGS;
+} dma_channel_flags_type_t;
+
+typedef enum
+{
+    DMA_CRC_CALCULATED_LSB_FIRST            = 0x01000000,
+    DMA_CRC_CALCULATED_MSB_FIRST            = 0,
+            
+    DMA_CRC_CON_ENABLE                      = 0x00000080,
+    DMA_CRC_CON_DISABLE                     = 0,
+            
+    DMA_CRC_CON_APPEND_ENABLE               = 0x00000040,
+    DMA_CRC_CON_APPEND_DISABLE              = 0,
+    
+    DMA_CRC_CON_TYPE_IP_HEADER              = 0x00000020,
+    DMA_CRC_CON_TYPE_LFSR                   = 0
+} dma_crc_con_type_t;
 
 typedef struct
 {
@@ -151,33 +166,41 @@ typedef struct
     volatile uint32_t DCHDATINV;
 } dma_channel_registers_t;
 
-typedef void (*dma_event_handler_t)(uint8_t id, DMA_CHANNEL_FLAGS flags);
-
-extern __inline__ unsigned int __attribute__((always_inline)) _VirtToPhys2(const void* p)
+typedef struct
 {
-	return (int)p<0?((int)p&0x1fffffffL):(unsigned int)((unsigned char*)p+0x40000000L);
-}
+    uint32_t            polynomial_value;
+    uint8_t             polynomial_order;
+    uint32_t            seed;
+    bool                reflected_io;
+    uint32_t            xorout;
+} dma_crc_t;
 
-void dma_init(  DMA_MODULE id, 
-                dma_event_handler_t evt_handler, 
-                DMA_CHANNEL_CONTROL dma_channel_control,
-                DMA_CHANNEL_INTERRUPT dma_channel_interrupt,
-                DMA_CHANNEL_EVENT dma_channel_event,
-                uint8_t irq_num_tx_start,
-                uint8_t irq_num_tx_abord);
+typedef void (*dma_event_handler_t)(uint8_t id, dma_channel_flags_type_t flags);
+
+dma_module_type_t dma_init( dma_event_handler_t evt_handler, 
+                            dma_channel_control_type_t dma_channel_control,
+                            dma_channel_interrupt_type_t dma_channel_interrupt,
+                            dma_channel_event_type_t dma_channel_event,
+                            uint8_t irq_num_tx_start,
+                            uint8_t irq_num_tx_abord);
 uint32_t dma_suspend();
 void dma_resume(uint32_t suspend_status);
-DMA_MODULE dma_get_free_channel();
-void dma_set_channel_event_control(DMA_MODULE id, DMA_CHANNEL_EVENT dma_channel_event);
-void dma_set_transfer_params(DMA_MODULE id, dma_channel_transfer_t * channel_transfer);
-void dma_channel_enable(DMA_MODULE id, bool enable, bool force_transfer);
-void dma_abord_transfer(DMA_MODULE id);
-bool dma_channel_is_enable(DMA_MODULE id);
-uint16_t dma_get_index_cell_pointer(DMA_MODULE id);
-DMA_CHANNEL_FLAGS dma_get_flags(DMA_MODULE id);
-void dma_clear_flags(DMA_MODULE id, DMA_CHANNEL_FLAGS flags);
+void dma_set_channel_event_control(dma_module_type_t id, dma_channel_event_type_t dma_channel_event);
+void dma_set_transfer_params(dma_module_type_t id, dma_channel_transfer_t * channel_transfer);
+void dma_channel_enable(dma_module_type_t id, bool enable, bool force_transfer);
+void dma_abord_transfer(dma_module_type_t id);
+bool dma_channel_is_enable(dma_module_type_t id);
+uint16_t dma_get_index_cell_pointer(dma_module_type_t id);
+dma_channel_flags_type_t dma_get_flags(dma_module_type_t id);
+void dma_clear_flags(dma_module_type_t id, dma_channel_flags_type_t flags);
 
-const uint8_t dma_get_irq(DMA_MODULE id);
-void dma_interrupt_handler(DMA_MODULE id);
+const uint8_t dma_get_irq(dma_module_type_t id);
+void dma_interrupt_handler(dma_module_type_t id);
+
+
+void dma_crc_init(uint32_t polynomial_value, uint8_t polynomial_order, uint32_t seed, bool reflected_io, uint32_t xorout);
+void dma_crc_execute(void * p_data, uint32_t length);
+bool dma_crc_is_calculated();
+uint32_t dma_crc_read();
 	
 #endif

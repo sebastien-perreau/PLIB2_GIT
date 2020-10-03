@@ -261,19 +261,19 @@ typedef void (*p_ble_function)(uint8_t *buffer);
 void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit, acquisitions_params_t *p_acquisitions);
 void ble_stack_tasks();
 
-__STATIC_INLINE void ble_security_enabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_security_enabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.device.security_connection.enable = true;
     p_ble_pickit->flags.security_mode = 1;
 }
 
-__STATIC_INLINE void ble_security_disabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_security_disabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.device.security_connection.enable = false;
     p_ble_pickit->flags.security_mode = 1;
 }
 
-__STATIC_INLINE void ble_set_name(ble_pickit_t * p_ble_pickit, char *name, uint8_t length)
+extern __inline__ void __attribute__((always_inline)) ble_set_name(ble_pickit_t * p_ble_pickit, char *name, uint8_t length)
 {
     memcpy(p_ble_pickit->status.device.name, name, length);
     p_ble_pickit->status.device.name[length] = '\0';
@@ -281,27 +281,27 @@ __STATIC_INLINE void ble_set_name(ble_pickit_t * p_ble_pickit, char *name, uint8
     p_ble_pickit->flags.reset_requested = 1;
 }
 
-__STATIC_INLINE void ble_pa_lna_enabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_pa_lna_enabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.hardware.pa_lna_enable = true;
     p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
     p_ble_pickit->flags.reset_requested = 1;
 }
 
-__STATIC_INLINE void ble_pa_lna_disabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_pa_lna_disabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.hardware.pa_lna_enable = false;
     p_ble_pickit->status.device.reset_type = RESET_BLE_PICKIT;
     p_ble_pickit->flags.reset_requested = 1;
 }
 
-__STATIC_INLINE void ble_led_status_enabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_led_status_enabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.hardware.led_enable = true;
     p_ble_pickit->flags.led_status = 1;
 }
 
-__STATIC_INLINE void ble_led_status_disabled(ble_pickit_t * p_ble_pickit)
+extern __inline__ void __attribute__((always_inline)) ble_led_status_disabled(ble_pickit_t * p_ble_pickit)
 {
     p_ble_pickit->status.hardware.led_enable = false;
     p_ble_pickit->flags.led_status = 1;

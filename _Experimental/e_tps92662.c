@@ -623,26 +623,21 @@ uint8_t e_tps92662_deamon(TPS92662_PARAMS *var)
             ports_clr_bit(var->chip_enable);
         }
         
-        var->dma_tx_id = dma_get_free_channel();
-        var->dma_rx_id = dma_get_free_channel();
-        
         uart_init(  var->uart_id, NULL, IRQ_NONE, var->uart_baudrate, UART_STD_PARAMS);
         
-        dma_init(   var->dma_tx_id, 
-                    NULL,                      
-                    DMA_CONT_PRIO_3, 
-                    DMA_INT_NONE, 
-                    DMA_EVT_START_TRANSFER_ON_IRQ, 
-                    uart_get_tx_irq(var->uart_id),  
-                    0xff);
+        var->dma_tx_id = dma_init(  NULL,                      
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_NONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    uart_get_tx_irq(var->uart_id),  
+                                    0xff);
         
-        dma_init(   var->dma_rx_id, 
-                    NULL, 
-                    DMA_CONT_PRIO_3, 
-                    DMA_INT_BLOCK_TRANSFER_DONE, 
-                    DMA_EVT_START_TRANSFER_ON_IRQ, 
-                    uart_get_rx_irq(var->uart_id), 
-                    0xff);
+        var->dma_rx_id = dma_init(  NULL, 
+                                    DMA_CONT_PRIO_3, 
+                                    DMA_INT_BLOCK_TRANSFER_DONE, 
+                                    DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                    uart_get_rx_irq(var->uart_id), 
+                                    0xff);
               
         var->dma_tx_params.dst_start_addr = (void *) uart_get_tx_reg(var->uart_id);
         var->dma_rx_params.src_start_addr = (void *) uart_get_rx_reg(var->uart_id);

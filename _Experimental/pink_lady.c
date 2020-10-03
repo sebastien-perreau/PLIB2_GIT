@@ -98,8 +98,6 @@ void pink_lady_deamon(pink_lady_params_t *var)
 {
     if (!var->is_init_done)
     {
-        
-        
         PINK_LADY_MANAGER_IDENTIFIERS i;
         for (i = 0 ; i < PL_ID_MAX ; i++)
         {
@@ -109,22 +107,18 @@ void pink_lady_deamon(pink_lady_params_t *var)
             pink_lady_manager_tab[var->spi_id][i].p_led_copy = var->p_led_copy;
         }
         
-        
-        var->dma_id = dma_get_free_channel();
-        
         spi_init(   var->spi_id, 
                     NULL, 
                     IRQ_NONE, 
                     ((var->led_model & SK6812RGBW_INDICE_MASK) > 0) ? SK6812RGBW_TIMING : (((var->led_model & SK6812RGB_INDICE_MASK) > 0) ? SK6812RGB_TIMING : WS2812B_TIMING), 
                     SPI_STD_MASTER_CONFIG);
         
-        dma_init(   var->dma_id, 
-                    NULL, 
-                    DMA_CONT_PRIO_3 | DMA_CONT_AUTO_ENABLE, 
-                    DMA_INT_NONE, 
-                    DMA_EVT_START_TRANSFER_ON_IRQ, 
-                    spi_get_tx_irq(var->spi_id), 
-                    0xff);
+        var->dma_id = dma_init( NULL, 
+                                DMA_CONT_PRIO_3 | DMA_CONT_AUTO_ENABLE, 
+                                DMA_INT_NONE, 
+                                DMA_EVT_START_TRANSFER_ON_IRQ, 
+                                spi_get_tx_irq(var->spi_id), 
+                                0xff);
         
         var->p_led_model_mapping = (uint32_t *)sk6812rgbw_ws2812b_mapping;
         var->dma_params.dst_start_addr = (void *) spi_get_tx_reg(var->spi_id);       

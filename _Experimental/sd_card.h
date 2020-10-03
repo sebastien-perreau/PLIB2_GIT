@@ -216,8 +216,8 @@ typedef struct
     bool                                        is_init_done;
     SPI_MODULE                                  spi_id;
     _io_t                                       spi_cs;
-    DMA_MODULE                                  dma_tx_id;
-    DMA_MODULE                                  dma_rx_id;
+    dma_module_type_t                           dma_tx_id;
+    dma_module_type_t                           dma_rx_id;
     dma_channel_transfer_t                      dma_tx_params;
     dma_channel_transfer_t                      dma_rx_params;
     bool                                        is_log_enable;
