@@ -436,10 +436,10 @@ void dma_interrupt_handler(dma_module_type_t id)
 
 
 
-static uint32_t __crc = 0;
-static dma_crc_t __crc_params = {0};
+static dma_crc_t __crc = {0};
+static uint32_t __crc_dummy = 0x00000000;
 static dma_module_type_t __dma_crc_id = 0;
-static dma_channel_transfer_t __dma_crc_ch_transfer = {NULL, &__crc, 0, 0, 0, 0x0000};
+static dma_channel_transfer_t __dma_crc_ch_transfer = {NULL, &__crc.__value, 0, 0, 0, 0x0000};
 
 static uint32_t __crc_non_direct_seed(uint32_t seed, uint32_t polynomial, uint8_t polynomial_order)
 {
@@ -477,25 +477,52 @@ static uint32_t __crc_reflect_data(uint32_t data, uint8_t data_bit_length)
     return reflection;
 }
 
+static void __crc_event_handler(uint8_t id, dma_channel_flags_type_t flags)
+{
+    if ((flags & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
+    {
+        dma_clear_flags(id, DMA_FLAG_BLOCK_TRANSFER_DONE); 
+        
+        if (__crc.__evt_state == 1)
+        {
+            dma_crc_execute(&__crc_dummy, (__crc.polynomial_order / 8));
+        }
+        else
+        { 
+            if (__crc.reflected_io)
+            {
+                __crc.__value = __crc_reflect_data(__crc.__value, __crc.polynomial_order);
+            }
+            __crc.__is_updated = true;
+            __crc.__evt_state = 0;
+            DCRCDATA = __crc.seed;
+        }
+    }
+}
+
 void dma_crc_init(uint32_t polynomial_value, uint8_t polynomial_order, uint32_t seed, bool reflected_io, uint32_t xorout)
 {
-    __dma_crc_id = dma_init(  NULL, 
-                            DMA_CONT_PRIO_1, 
+    __dma_crc_id = dma_init(  __crc_event_handler, 
+                            DMA_CONT_PRIO_3, 
                             DMA_INT_BLOCK_TRANSFER_DONE, 
                             DMA_EVT_NONE, 
                             0xff, 
                             0xff);
      
-    __crc_params.polynomial_value = polynomial_value;
-    __crc_params.polynomial_order = polynomial_order;
-    __crc_params.seed = __crc_non_direct_seed(seed, polynomial_value, polynomial_order);
-    __crc_params.reflected_io = reflected_io;
-    __crc_params.xorout = xorout;
+    __crc.polynomial_value = polynomial_value;
+    __crc.polynomial_order = polynomial_order;
+    __crc.seed = __crc_non_direct_seed(seed, polynomial_value, polynomial_order);
+    __crc.reflected_io = reflected_io;
+    __crc.xorout = xorout;
+    
+    __crc.__value = 0;
+    __crc.__evt_state = 0;
+    __crc.__is_updated = false;
     
     DCRCCON = 0;
-    DCRCXOR = __crc_params.polynomial_value;
-    DCRCDATA = __crc_params.seed;
-    DCRCCON = (__crc_params.reflected_io ? DMA_CRC_CALCULATED_LSB_FIRST : DMA_CRC_CALCULATED_MSB_FIRST) | ((__crc_params.polynomial_order - 1) << 8) | DMA_CRC_CON_ENABLE | DMA_CRC_CON_APPEND_ENABLE | DMA_CRC_CON_TYPE_LFSR | __dma_crc_id;   
+    DCRCXOR = __crc.polynomial_value;
+    DCRCDATA = __crc.seed;
+    DCRCCON = (__crc.reflected_io ? DMA_CRC_CALCULATED_LSB_FIRST : DMA_CRC_CALCULATED_MSB_FIRST) | ((__crc.polynomial_order - 1) << 8) | DMA_CRC_CON_ENABLE | DMA_CRC_CON_APPEND_ENABLE | DMA_CRC_CON_TYPE_LFSR | __dma_crc_id;   
 }
 
 void dma_crc_execute(void * p_data, uint32_t length)
@@ -506,24 +533,18 @@ void dma_crc_execute(void * p_data, uint32_t length)
     __dma_crc_ch_transfer.cell_size = length;
     
     dma_set_transfer_params(__dma_crc_id, &__dma_crc_ch_transfer);  
-    dma_channel_enable(__dma_crc_id, ON, true);     // Force the transfer because no EVENT (DMA_EVT_NONE) has been set on dma_id.
+    dma_channel_enable(__dma_crc_id, ON, true);     // Force the transfer because no EVENT (DMA_EVT_NONE) has been set on __dma_crc_id.
+    
+    __crc.__evt_state++;
 }
 
-bool dma_crc_is_calculated()
+bool dma_crc_is_calculated(uint32_t * p_crc)
 {
-    if ((dma_get_flags(__dma_crc_id) & DMA_FLAG_BLOCK_TRANSFER_DONE) > 0)
+    if (__crc.__is_updated)
     {
-        dma_clear_flags(__dma_crc_id, DMA_FLAG_BLOCK_TRANSFER_DONE); 
-        if (__crc_params.reflected_io)
-        {
-            __crc = __crc_reflect_data(__crc, __crc_params.polynomial_order);
-        }
+        __crc.__is_updated = false;
+        *p_crc = __crc.__value;
         return true;
     }
     return false;
-}
-
-uint32_t dma_crc_read()
-{
-    return __crc;
 }

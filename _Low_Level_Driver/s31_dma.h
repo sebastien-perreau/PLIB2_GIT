@@ -95,75 +95,75 @@ typedef enum
 
 typedef struct
 {
-    const void      *src_start_addr; 
-    const void      *dst_start_addr; 
-    uint16_t        src_size;
-    uint16_t        dst_size;
-    uint16_t        cell_size;
-    uint16_t        pattern_data;
+    const void          *src_start_addr; 
+    const void          *dst_start_addr; 
+    uint16_t            src_size;
+    uint16_t            dst_size;
+    uint16_t            cell_size;
+    uint16_t            pattern_data;
 } dma_channel_transfer_t;
 
 typedef struct
 {
-    volatile uint32_t DCHCON;
-    volatile uint32_t DCHCONCLR;
-    volatile uint32_t DCHCONSET;
-    volatile uint32_t DCHCONINV;
+    volatile uint32_t   DCHCON;
+    volatile uint32_t   DCHCONCLR;
+    volatile uint32_t   DCHCONSET;
+    volatile uint32_t   DCHCONINV;
     
-    volatile uint32_t DCHECON;
-    volatile uint32_t DCHECONCLR;
-    volatile uint32_t DCHECONSET;
-    volatile uint32_t DCHECONINV;
+    volatile uint32_t   DCHECON;
+    volatile uint32_t   DCHECONCLR;
+    volatile uint32_t   DCHECONSET;
+    volatile uint32_t   DCHECONINV;
     
-    volatile uint32_t DCHINT;
-    volatile uint32_t DCHINTCLR;
-    volatile uint32_t DCHINTSET;
-    volatile uint32_t DCHINTINT;
+    volatile uint32_t   DCHINT;
+    volatile uint32_t   DCHINTCLR;
+    volatile uint32_t   DCHINTSET;
+    volatile uint32_t   DCHINTINT;
     
-    volatile uint32_t DCHSSA;
-    volatile uint32_t DCHSSACLR;
-    volatile uint32_t DCHSSASET;
-    volatile uint32_t DCHSSAINV;
+    volatile uint32_t   DCHSSA;
+    volatile uint32_t   DCHSSACLR;
+    volatile uint32_t   DCHSSASET;
+    volatile uint32_t   DCHSSAINV;
     
-    volatile uint32_t DCHDSA;
-    volatile uint32_t DCHDSACLR;
-    volatile uint32_t DCHDSASET;
-    volatile uint32_t DCHDSAINV;
+    volatile uint32_t   DCHDSA;
+    volatile uint32_t   DCHDSACLR;
+    volatile uint32_t   DCHDSASET;
+    volatile uint32_t   DCHDSAINV;
     
-    volatile uint32_t DCHSSIZ;
-    volatile uint32_t DCHSSIZCLR;
-    volatile uint32_t DCHSSIZSET;
-    volatile uint32_t DCHSSIZINV;
+    volatile uint32_t   DCHSSIZ;
+    volatile uint32_t   DCHSSIZCLR;
+    volatile uint32_t   DCHSSIZSET;
+    volatile uint32_t   DCHSSIZINV;
     
-    volatile uint32_t DCHDSIZ;
-    volatile uint32_t DCHDSIZCLR;
-    volatile uint32_t DCHDSIZSET;
-    volatile uint32_t DCHDSIZINV;
+    volatile uint32_t   DCHDSIZ;
+    volatile uint32_t   DCHDSIZCLR;
+    volatile uint32_t   DCHDSIZSET;
+    volatile uint32_t   DCHDSIZINV;
     
-    volatile uint32_t DCHSPTR;
-    volatile uint32_t DCHSPTRCLR;
-    volatile uint32_t DCHSPTRSET;
-    volatile uint32_t DCHSPTRINV;
+    volatile uint32_t   DCHSPTR;
+    volatile uint32_t   DCHSPTRCLR;
+    volatile uint32_t   DCHSPTRSET;
+    volatile uint32_t   DCHSPTRINV;
     
-    volatile uint32_t DCHDPTR;
-    volatile uint32_t DCHDPTRCLR;
-    volatile uint32_t DCHDPTRSET;
-    volatile uint32_t DCHDPTRINV;
+    volatile uint32_t   DCHDPTR;
+    volatile uint32_t   DCHDPTRCLR;
+    volatile uint32_t   DCHDPTRSET;
+    volatile uint32_t   DCHDPTRINV;
     
-    volatile uint32_t DCHCSIZ;
-    volatile uint32_t DCHCSIZCLR;
-    volatile uint32_t DCHCSIZSET;
-    volatile uint32_t DCHCSIZINV;
+    volatile uint32_t   DCHCSIZ;
+    volatile uint32_t   DCHCSIZCLR;
+    volatile uint32_t   DCHCSIZSET;
+    volatile uint32_t   DCHCSIZINV;
     
-    volatile uint32_t DCHCPTR;
-    volatile uint32_t DCHCPTRCLR;
-    volatile uint32_t DCHCPTRSET;
-    volatile uint32_t DCHCPTRINV;
+    volatile uint32_t   DCHCPTR;
+    volatile uint32_t   DCHCPTRCLR;
+    volatile uint32_t   DCHCPTRSET;
+    volatile uint32_t   DCHCPTRINV;
     
-    volatile uint32_t DCHDAT;
-    volatile uint32_t DCHDATCLR;
-    volatile uint32_t DCHDATSET;
-    volatile uint32_t DCHDATINV;
+    volatile uint32_t   DCHDAT;
+    volatile uint32_t   DCHDATCLR;
+    volatile uint32_t   DCHDATSET;
+    volatile uint32_t   DCHDATINV;
 } dma_channel_registers_t;
 
 typedef struct
@@ -173,6 +173,10 @@ typedef struct
     uint32_t            seed;
     bool                reflected_io;
     uint32_t            xorout;
+    
+    uint32_t            __value;
+    bool                __is_updated;
+    uint8_t             __evt_state;    
 } dma_crc_t;
 
 typedef void (*dma_event_handler_t)(uint8_t id, dma_channel_flags_type_t flags);
@@ -197,10 +201,16 @@ void dma_clear_flags(dma_module_type_t id, dma_channel_flags_type_t flags);
 const uint8_t dma_get_irq(dma_module_type_t id);
 void dma_interrupt_handler(dma_module_type_t id);
 
-
 void dma_crc_init(uint32_t polynomial_value, uint8_t polynomial_order, uint32_t seed, bool reflected_io, uint32_t xorout);
 void dma_crc_execute(void * p_data, uint32_t length);
-bool dma_crc_is_calculated();
-uint32_t dma_crc_read();
+bool dma_crc_is_calculated(uint32_t * p_crc);
+
+#define dma_crc_16()        dma_crc_modbus()
+#define dma_crc_modbus()    dma_crc_init(0x8005, 16, 0xffff, true, 0x0000)
+#define dma_crc_usb()       dma_crc_init(0x8005, 16, 0xffff, true, 0xffff)
+#define dma_crc_maxim()     dma_crc_init(0x8005, 16, 0x0000, true, 0xffff)
+#define dma_crc_arc()       dma_crc_init(0x8005, 16, 0x0000, true, 0x0000)
+#define dma_crc_buypass()   dma_crc_init(0x8005, 16, 0x0000, false, 0x0000)
+#define dma_crc_dds_110()   dma_crc_init(0x8005, 16, 0x800d, false, 0x0000)
 	
 #endif
