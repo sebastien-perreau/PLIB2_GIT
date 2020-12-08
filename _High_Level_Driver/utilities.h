@@ -75,8 +75,8 @@ typedef struct
     bool            enable;
     uint8_t         intensity;
     uint8_t         *p_out;
-    uint32_t        t_up;
-    uint32_t        t_down;
+    uint64_t        t_up;
+    uint64_t        t_down;
     uint64_t        tick;
 } led_params_t;
 

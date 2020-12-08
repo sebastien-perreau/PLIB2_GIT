@@ -66,7 +66,7 @@ static void software_pwm_event_handler(uint8_t id)
         }
     }    
     
-    p_software_pwm->counter += p_software_pwm->resolution;
+    p_software_pwm->counter++;// += p_software_pwm->resolution;
 }
 
 /*******************************************************************************
@@ -90,5 +90,5 @@ void software_pwm_init(SOFTWAPRE_PWM_PARAMS *var)
         ports_reset_pin_output(var->io[i]);
     }
     
-    timer_init_2345_hz(var->timer_module, software_pwm_event_handler, TMR_ON | TMR_SOURCE_INT | TMR_IDLE_CON | TMR_GATE_OFF, var->frequency_hz * 255 / var->resolution);
+    timer_init_2345_hz(var->timer_module, software_pwm_event_handler, TMR_ON | TMR_SOURCE_INT | TMR_IDLE_CON | TMR_GATE_OFF, var->frequency_hz * 255);
 }

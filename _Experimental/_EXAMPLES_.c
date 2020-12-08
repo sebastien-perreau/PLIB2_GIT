@@ -471,7 +471,7 @@ void _EXAMPLE_PWM()
 void _EXAMPLE_SOFTWARE_PWM()
 {
     static state_machine_t sm_example = {0};
-    SOFTWARE_PWM_DEF(spwm, TIMER5, SOFTWARE_PWM_FREQ_200HZ, SOFTWARE_PWM_RESO_1, __PE0, __PE1, __PE2, __PE3, __PE4, __PE5, __PE6, __PG6, __PG7, __PG12, __PG13, __PG14, __PA6, __PA7, __PB11, __PB12, __PB13, __PB14, __PB4, __PB2, __PA0, __PA1, __PA4, __PA5, __PB0, __PB1, __PB3, __PB5, __PB8, __PB9);
+    SOFTWARE_PWM_DEF(spwm, TIMER5, SOFTWARE_PWM_FREQ_200HZ, __PE0, __PE1, __PE2, __PE3, __PE4, __PE5, __PE6, __PG6, __PG7, __PG12, __PG13, __PG14, __PA6, __PA7, __PB11, __PB12, __PB13, __PB14, __PB4, __PB2, __PA0, __PA1, __PA4, __PA5, __PB0, __PB1, __PB3, __PB5, __PB8, __PB9);
     LED_DEF(led, &spwm.pwm[0], OFF, 140, TICK_1MS, TICK_5MS);
     
     switch (sm_example.index)

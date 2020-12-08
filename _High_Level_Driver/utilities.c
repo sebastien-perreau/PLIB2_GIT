@@ -171,7 +171,7 @@ bool fu_turn_indicator(bool enable, uint32_t time_on, uint32_t time_off)
  *      none.
  ******************************************************************************/
 void fu_led(led_params_t *var)
-{
+{    
     if (var->enable)
     {
         if (*var->p_out < var->intensity)
