@@ -10,7 +10,6 @@
         <itemPath>../_Experimental/_EXAMPLES_.h</itemPath>
         <itemPath>../_Experimental/_LOG.h</itemPath>
         <itemPath>../_Experimental/pink_lady.h</itemPath>
-        <itemPath>../_Experimental/e_tps92662.h</itemPath>
         <itemPath>../_Experimental/sd_card.h</itemPath>
         <itemPath>../_Experimental/fat_file_system.h</itemPath>
       </logicalFolder>
@@ -18,12 +17,12 @@
                      displayName="_External_Components"
                      projectFiles="true">
         <itemPath>../_External_Components/e_mcp23s17.h</itemPath>
-        <itemPath>../_External_Components/e_amis30621.h</itemPath>
-        <itemPath>../_External_Components/e_tmc429.h</itemPath>
         <itemPath>../_External_Components/e_25lc512.h</itemPath>
         <itemPath>../_External_Components/e_at42qt2120.h</itemPath>
         <itemPath>../_External_Components/e_pca9685.h</itemPath>
         <itemPath>../_External_Components/e_veml7700.h</itemPath>
+        <itemPath>../_External_Components/e_tps92662.h</itemPath>
+        <itemPath>../_External_Components/e_grove_motor_tb6612fng.h</itemPath>
       </logicalFolder>
       <logicalFolder name="_High_Level_Driver"
                      displayName="_High_Level_Driver"
@@ -65,19 +64,18 @@
         <itemPath>../_Experimental/_EXAMPLES_.c</itemPath>
         <itemPath>../_Experimental/_LOG.c</itemPath>
         <itemPath>../_Experimental/pink_lady.c</itemPath>
-        <itemPath>../_Experimental/e_tps92662.c</itemPath>
         <itemPath>../_Experimental/sd_card.c</itemPath>
       </logicalFolder>
       <logicalFolder name="_External_Components"
                      displayName="_External_Components"
                      projectFiles="true">
         <itemPath>../_External_Components/e_mcp23s17.c</itemPath>
-        <itemPath>../_External_Components/e_amis30621.c</itemPath>
-        <itemPath>../_External_Components/e_tmc429.c</itemPath>
         <itemPath>../_External_Components/e_25lc512.c</itemPath>
         <itemPath>../_External_Components/e_at42qt2120.c</itemPath>
         <itemPath>../_External_Components/e_pca9685.c</itemPath>
         <itemPath>../_External_Components/e_veml7700.c</itemPath>
+        <itemPath>../_External_Components/e_tps92662.c</itemPath>
+        <itemPath>../_External_Components/e_grove_motor_tb6612fng.c</itemPath>
       </logicalFolder>
       <logicalFolder name="_High_Level_Driver"
                      displayName="_High_Level_Driver"
@@ -121,7 +119,7 @@
         <targetDevice>PIC32MX795F512L</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>noID</platformTool>
+        <platformTool></platformTool>
         <languageToolchain>XC32</languageToolchain>
         <languageToolchainVersion>2.41</languageToolchainVersion>
         <platform>4</platform>

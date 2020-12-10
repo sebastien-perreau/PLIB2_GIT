@@ -34,16 +34,15 @@
 
 #include "_External_Components/e_25lc512.h"
 #include "_External_Components/e_mcp23s17.h"
-#include "_External_Components/e_amis30621.h"
-#include "_External_Components/e_tmc429.h"
 #include "_External_Components/e_at42qt2120.h"
 #include "_External_Components/e_pca9685.h"
 #include "_External_Components/e_veml7700.h"
+#include "_External_Components/e_tps92662.h"
+#include "_External_Components/e_grove_motor_tb6612fng.h"
 
 #include "_Experimental/_EXAMPLES_.h"
 #include "_Experimental/_LOG.h"
 #include "_Experimental/pink_lady.h"
-#include "_Experimental/e_tps92662.h"
 #include "_Experimental/fat_file_system.h"
 #include "_Experimental/sd_card.h"
 
