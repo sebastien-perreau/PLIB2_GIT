@@ -74,6 +74,7 @@ typedef enum
             
     _BUS_I2C_BUSY,
     _BUS_MANAGEMENT_BUSY,
+    _BUS_NO_FLAG,
     _BUS_I2C_INIT                       = 0xff
 } I2C_STATE_MACHINE;
 

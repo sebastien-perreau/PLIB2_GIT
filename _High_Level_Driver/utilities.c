@@ -811,6 +811,8 @@ void __program_errors(__PROGRAM_ERRORS code_error)
     i2c_enable(I2C3, DISABLE);
     log_init(UART1, UART_BAUDRATE_2M);
     
+    LOG("Program Error Occurs - Code %d", code_error);
+    
     do
     {
         if (mTickCompare(sm_errors.tick) >= TICK_200MS)
@@ -843,8 +845,7 @@ void __program_errors(__PROGRAM_ERRORS code_error)
                 break;
                 
             case 3:
-                
-                LOG("Program Error Occurs - Code %d", code_error);
+                                
                 mSetIO(LED1);
                 mSetIO(LED2);
                 mSetIO(LED3);

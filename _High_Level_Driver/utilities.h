@@ -365,6 +365,7 @@ void            background_tasks(acquisitions_params_t *var);
 typedef enum
 {
     __PE_DMA_NO_MORE_FREE_CHANNEL   = 1,
+    __PE_GROVE_MOTOR_NEW_DEVICE_ADDRESS = 2,
             
     __PE_MAX_FLAGS                  = 255
 } __PROGRAM_ERRORS;
