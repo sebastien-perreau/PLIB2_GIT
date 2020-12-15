@@ -71,6 +71,7 @@ typedef enum
     _WAIT_AND_VERIFY,
     _STOP,
     _FAIL,
+    _END,
             
     _BUS_I2C_BUSY,
     _BUS_MANAGEMENT_BUSY,

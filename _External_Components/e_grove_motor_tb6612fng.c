@@ -103,7 +103,7 @@ uint8_t e_grove_motor_tb6612fng_deamon(grove_motor_t *var)
     {
         ret = i2c_master_state_machine(&var->i2c_params, &var->i2c_functions);
         
-        if ((ret == _STOP) && (var->i2c_params.data_access.address_register_device == GROVE_MOTOR_CMD_SET_ADDRESS))
+        if ((ret == _END) && (var->i2c_params.data_access.address_register_device == GROVE_MOTOR_CMD_SET_ADDRESS))
         {
             // See IMPORTANT and RECOMMANDATIONS in this heading's file.
             ERROR(__ERROR_GROVE_MOTOR_NEW_DEVICE_ADDRESS);

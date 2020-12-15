@@ -581,19 +581,13 @@ I2C_STATE_MACHINE i2c_master_state_machine(I2C_PARAMS *var, I2C_FUNCTIONS *fct)
                     case _STOP:
 
                         i2c_stop(var->module);
-                        var->state_machine.index = _HOME;
-                        var->state_machine.tick = mGetTick();
-                        var->bus_management_params.is_running = false;
-                        var->bus_management_params.tick = mGetTick();
+                        var->state_machine.index = _END;
                         break;
 
                     case _FAIL:
 
                         i2c_stop(var->module);
-                        var->state_machine.index = _HOME;
-                        var->state_machine.tick = mGetTick();
-                        var->bus_management_params.is_running = false;
-                        var->bus_management_params.tick = mGetTick();
+                        var->state_machine.index = _END;
                         var->fail_count++;
                         break;
 
@@ -627,10 +621,15 @@ I2C_STATE_MACHINE i2c_master_state_machine(I2C_PARAMS *var, I2C_FUNCTIONS *fct)
 
         if (fct->active_function < fct->maximum_functions)
         {
-            if (ret == _STOP)
+            if (ret == _END)
             {
                 CLR_BIT(fct->flags, fct->active_function);
                 fct->active_function = 0xff;
+                
+                var->state_machine.index = _HOME;
+                var->state_machine.tick = mGetTick();
+                var->bus_management_params.is_running = false;
+                var->bus_management_params.tick = mGetTick();
             }
             else if (ret == _START)
             {

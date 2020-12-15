@@ -72,7 +72,7 @@ typedef struct
 #define GROVE_MOTOR_INSTANCE(_name, _i2c_module, _device_address)                           \
 {                                                                                           \
     .is_init_done = false,                                                                  \
-    .i2c_params = I2C_PARAMS_INSTANCE(_i2c_module, _device_address, false, (uint8_t*) &_name.registers, TICK_10MS, 0), \
+    .i2c_params = I2C_PARAMS_INSTANCE(_i2c_module, _device_address, false, (uint8_t*) &_name.registers, TICK_2MS, 0), \
     .i2c_functions =                                                                        \
     {                                                                                       \
         .flags = 0,                                                                         \
