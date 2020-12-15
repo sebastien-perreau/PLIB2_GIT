@@ -59,8 +59,8 @@
 //
 //typedef struct
 //{
-//    DYNAMIC_TAB_BYTE                    dW;
-//    DYNAMIC_TAB_BYTE                    dR;
+//    dynamic_tab_uint8_t                 dW;
+//    dynamic_tab_uint8_t                 dR;
 //    uint16_t                            aW;
 //    uint16_t                            aR;
 //    __25LC512_STATUS_REGISTERbits       status_bit;

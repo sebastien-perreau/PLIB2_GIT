@@ -941,7 +941,7 @@ void _EXAMPLE_MCP23S17()
 				"57MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM\n\r"\
 				"58MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM\n\r"\
 				"59MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
-void _EXAMPLE_LOG(acquisitions_params_t var)
+void _EXAMPLE_LOG()
 {
     static state_machine_t sm_example = {0};
     static state_machine_t sm_log = {0};
@@ -1057,7 +1057,12 @@ void _EXAMPLE_LOG(acquisitions_params_t var)
                 default:
                     if (mTickCompare(sm_log.tick) >= TICK_1S)
                     {
-                        LOG("@: %x - Voltage = %fV - Current = %fA - Power Consumption = %fW - Temperature = %1f°C", (uint32_t) &var, p_float(var.voltage.average), p_float(var.current.average), p_float(var.power_consumption), p_float(var.ntc.temperature));
+                        float current = __current / 1000.0;
+                        float voltage = __voltage / 10.0;
+                        float power = voltage * current;
+                        float temp = __temperature / 10.0;
+                        
+                        LOG("Voltage = %fV - Current = %fA - Power Consumption = %fW - Temperature = %1f°C", p_float(voltage), p_float(current), p_float(power), p_float(temp));
                         sm_log.tick = mGetTick();
                     }
                     break;

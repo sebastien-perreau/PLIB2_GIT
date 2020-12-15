@@ -23,12 +23,18 @@
     #define CAN2_ENABLE_PIN             __PC2
     #define LIN_ENABLE_PIN              __PC13
 
+    volatile uint8_t                    __led_status;
+    volatile uint16_t                   __temperature;  // (float.temperature : -40.0 .. 200.0) x 10
+    volatile uint8_t                    __voltage;      // (float.average: (e.i) 12.56 voltages) x 10
+    volatile uint8_t                    __current;      // (float.average: (e.i) 17.48 amperes) x 1000 -> give a value in milliamperes
+    volatile uint32_t                   __speed;        // UC Speed define in microseconds
+    
     // level: OFF/ON/BLINK/BLINK_INV
-    #define mToggleLedStatusD2()        INV_BIT(_ledStatus, 2)
-    #define mToggleLedStatusD3()        INV_BIT(_ledStatus, 0)
+    #define mToggleLedStatusD2()        INV_BIT(__led_status, 2)
+    #define mToggleLedStatusD3()        INV_BIT(__led_status, 0)
 
-    #define mUpdateLedStatusD2(level)   _ledStatus = ((_ledStatus & 0xf3) | ((level & 0x03) << 2))
-    #define mUpdateLedStatusD3(level)   _ledStatus = ((_ledStatus & 0xfc) | ((level & 0x03) << 0))
+    #define mUpdateLedStatusD2(level)   __led_status = ((__led_status & 0xf3) | ((level & 0x03) << 2))
+    #define mUpdateLedStatusD3(level)   __led_status = ((__led_status & 0xfc) | ((level & 0x03) << 0))
 
     #define m_init_hardware_picadapter()    {                                       \
                                                 mInitIOAsOutput(LED2);              \
@@ -102,41 +108,41 @@
         bool        *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_BOOL;
+    } dynamic_tab_bool_t;
     
     typedef struct
     {
         uint8_t     *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_BYTE;
+    } dynamic_tab_uint8_t;
     
     typedef struct
     {
         uint16_t    *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_WORD;
+    } dynamic_tab_uint16_t;
     
     typedef struct
     {
         uint32_t    *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_DWORD;
+    } dynamic_tab_uint32_t;
     
     typedef struct
     {
         uint64_t    *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_QWORD;
+    } dynamic_tab_uint64_t;
     
     typedef struct
     {
         float       *p;
         uint16_t    size;
         uint16_t    index;
-    } DYNAMIC_TAB_FLOAT;
+    } dynamic_tab_float_t;
 	
 #endif

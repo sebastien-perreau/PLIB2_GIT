@@ -102,7 +102,7 @@ typedef struct
     
     fat_file_system_flags_t             flags;
     state_machine_t                     sm_read;
-    DYNAMIC_TAB_BYTE                    buffer;
+    dynamic_tab_uint8_t                 buffer;
     uint32_t                            current_cluster_of_the_file;
     uint32_t                            _data_address;
     uint16_t                            _data_length;

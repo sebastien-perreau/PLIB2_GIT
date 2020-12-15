@@ -61,7 +61,7 @@ static dma_module_type_t __dma_get_free_channel()
     }
     if (i == DMA_NUMBER_OF_MODULES)
     {
-        __program_errors(__PE_DMA_NO_MORE_FREE_CHANNEL);
+        ERROR(__ERROR_DMA_NO_MORE_FREE_CHANNEL);
     }
     return i;
 }

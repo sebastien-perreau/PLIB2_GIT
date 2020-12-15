@@ -17,6 +17,8 @@
 #include "_Low_Level_Driver/s07_resets.h"
 #include "_Low_Level_Driver/s12_ports.h"
 
+#include "_High_Level_Driver/errors.h"
+#include "_High_Level_Driver/crc_16.h"
 #include "_High_Level_Driver/utilities.h"
 #include "_High_Level_Driver/string_advance.h"
 
@@ -45,7 +47,5 @@
 #include "_Experimental/pink_lady.h"
 #include "_Experimental/fat_file_system.h"
 #include "_Experimental/sd_card.h"
-
-uint8_t _ledStatus;
 
 #endif

@@ -8,7 +8,6 @@
 #include "../PLIB2.h"
 
 static ble_pickit_t * p_ble_pickit;
-static acquisitions_params_t *p_acquisitions;
 static UART_MODULE m_uart_id = UART_NUMBER_OF_MODULES;
 static dma_module_type_t m_dma_id = DMA_NUMBER_OF_MODULES;
 static dma_channel_transfer_t dma_tx = {NULL, NULL, 0, 0, 0, 0x0000};
@@ -75,10 +74,9 @@ static void ble_uart_event_handler(uint8_t id, IRQ_EVENT_TYPE evt_type, uint32_t
     }
 }
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * _p_ble_pickit, acquisitions_params_t *_p_acquisitions)
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * _p_ble_pickit)
 {       
     p_ble_pickit = _p_ble_pickit;
-    p_acquisitions = _p_acquisitions;
     m_uart_id = uart_id;
     
     uart_init(  uart_id, ble_uart_event_handler, IRQ_UART_RX, data_rate, UART_STD_PARAMS);
@@ -142,7 +140,7 @@ void ble_stack_tasks()
 
             p_ble_pickit->uart.message_type = UART_NO_MESSAGE;
 
-            crc_calc = fu_crc_16_ibm(p_ble_pickit->uart.rx_buffer, p_ble_pickit->uart.rx_buffer[1] + 2);
+            crc_calc = crc_16(p_ble_pickit->uart.rx_buffer, p_ble_pickit->uart.rx_buffer[1] + 2);
             crc_uart = (p_ble_pickit->uart.rx_buffer[p_ble_pickit->uart.rx_buffer[1] + 2] << 8) + (p_ble_pickit->uart.rx_buffer[p_ble_pickit->uart.rx_buffer[1] + 3] << 0);
 
             if (crc_calc == crc_uart)
@@ -269,8 +267,8 @@ void ble_stack_tasks()
                     break;
                     
                 case ID_CHAR_SPC_STATUS:
-                    p_ble_pickit->app_spc.time_x20ms = (p_acquisitions != NULL) ? p_ble_pickit->uart.rx_buffer[2] : 0;
-                    p_ble_pickit->flags.notif_app_spc = (p_acquisitions != NULL) ? 1 : 0;
+                    p_ble_pickit->app_spc.time_x20ms = p_ble_pickit->uart.rx_buffer[2];
+                    p_ble_pickit->flags.notif_app_spc = 1;
                     mUpdateTick(p_ble_pickit->app_spc.tick);
                     break;
                     
@@ -558,19 +556,15 @@ static void _app_buffer(uint8_t *buffer)
 
 static void _app_spc(uint8_t *buffer)
 {
-    uint16_t _temperature = fu_get_integer_value(p_acquisitions->ntc.temperature * 10.0);
-    uint8_t _voltage = fu_get_integer_value(p_acquisitions->voltage.average * 10.0);
-    uint8_t _current = fu_get_integer_value(p_acquisitions->current.average * 1000.0);    
-    
 	buffer[0] = ID_CHAR_SPC_STATUS;
 	buffer[1] = 7;
     buffer[2] = p_ble_pickit->app_spc.time_x20ms;
-    buffer[3] = _temperature >> 0;
-    buffer[4] = _temperature >> 8;
-    buffer[5] = _voltage;
-    buffer[6] = _current;
-    buffer[7] = p_acquisitions->speed >> 0;
-    buffer[8] = p_acquisitions->speed >> 8;
+    buffer[3] = __temperature >> 0;
+    buffer[4] = __temperature >> 8;
+    buffer[5] = __voltage;
+    buffer[6] = __current;
+    buffer[7] = __speed >> 0;
+    buffer[8] = __speed >> 8;
 }
 
 static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
@@ -603,7 +597,7 @@ static uint8_t vsd_outgoing_message_uart(p_ble_function ptr)
 				{
 					sm.index++;
 					(*ptr)(buffer);
-                    crc = fu_crc_16_ibm(buffer, buffer[1]+2);
+                    crc = crc_16(buffer, buffer[1]+2);
                     buffer[buffer[1]+2] = (crc >> 8) & 0xff;
                     buffer[buffer[1]+3] = (crc >> 0) & 0xff;
 				}

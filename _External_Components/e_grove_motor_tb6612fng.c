@@ -106,7 +106,7 @@ uint8_t e_grove_motor_tb6612fng_deamon(grove_motor_t *var)
         if ((ret == _STOP) && (var->i2c_params.data_access.address_register_device == GROVE_MOTOR_CMD_SET_ADDRESS))
         {
             // See IMPORTANT and RECOMMANDATIONS in this heading's file.
-            __program_errors(__PE_GROVE_MOTOR_NEW_DEVICE_ADDRESS);
+            ERROR(__ERROR_GROVE_MOTOR_NEW_DEVICE_ADDRESS);
         }
     }
     

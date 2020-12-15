@@ -32,6 +32,8 @@
         <itemPath>../_High_Level_Driver/string_advance.h</itemPath>
         <itemPath>../_High_Level_Driver/lin.h</itemPath>
         <itemPath>../_High_Level_Driver/software_pwm.h</itemPath>
+        <itemPath>../_High_Level_Driver/crc_16.h</itemPath>
+        <itemPath>../_High_Level_Driver/errors.h</itemPath>
       </logicalFolder>
       <logicalFolder name="_Low_Level_Driver"
                      displayName="_Low_Level_Driver"
@@ -85,6 +87,8 @@
         <itemPath>../_High_Level_Driver/string_advance.c</itemPath>
         <itemPath>../_High_Level_Driver/lin.c</itemPath>
         <itemPath>../_High_Level_Driver/software_pwm.c</itemPath>
+        <itemPath>../_High_Level_Driver/crc_16.c</itemPath>
+        <itemPath>../_High_Level_Driver/errors.c</itemPath>
       </logicalFolder>
       <logicalFolder name="_Low_Level_Driver"
                      displayName="_Low_Level_Driver"

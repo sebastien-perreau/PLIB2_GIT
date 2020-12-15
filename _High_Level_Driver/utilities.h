@@ -169,7 +169,7 @@ typedef struct
     uint8_t                 mode_off;
     uint32_t                time_on;
     uint32_t                time_off;
-    DYNAMIC_TAB_BOOL        p_output;
+    dynamic_tab_bool_t      p_output;
     uint8_t                 _mode;
     uint32_t                _time;
     uint8_t                 save_state;
@@ -199,7 +199,7 @@ static slider_params_t _name = SLIDER_INSTANCE(_name ## _ram_allocation, _size, 
 typedef struct
 {
     uint16_t                adc_module;
-    DYNAMIC_TAB_FLOAT       buffer;
+    dynamic_tab_float_t     buffer;
     float                   average;
     float                   sum_of_buffer;
     uint16_t                index_buffer;
@@ -306,35 +306,6 @@ typedef struct
 #define BUS_MANAGEMENT_DEF(_name, ...)  \
 static BUS_MANAGEMENT_VAR _name = BUS_MANAGEMENT_INSTANCE(__VA_ARGS__)
 
-// ------------------------------------------------------
-// ***** STRUCTURE FOR THE BACKGROUND TASKS ROUTINE *****
-typedef struct
-{    
-    ntc_params_t        ntc;                // .temperature : -40.0 .. 200.0
-    average_params_t    current;            // .average: (e.i) 17.48
-    average_params_t    voltage;            // .average: (e.i) 12.56
-    average_params_t    an15;               // .average: 0 .. 1023
-    float               power_consumption;  // voltage x current (@ t time)
-    uint64_t            speed;              // UC Speed define in uS
-} acquisitions_params_t;
-
-#define ACQUISITIONS_INSTANCE(_buffer_ntc, _buffer_current, _buffer_voltage, _buffer_an15)    \
-{                                                                               \
-    .ntc = NTC_INSTANCE(AN15, _buffer_ntc, 25, 10000, 3380, 10000),             \
-    .current = AVERAGE_INSTANCE(AN15, _buffer_current, TICK_1MS),               \
-    .voltage = AVERAGE_INSTANCE(AN15, _buffer_voltage, TICK_1MS),               \
-    .an15 = AVERAGE_INSTANCE(AN15, _buffer_an15, TICK_1MS),                     \
-    .power_consumption = 0.0,                                                   \
-    .speed = 0,                                                                 \
-}
-
-#define ACQUISITIONS_DEF(_name)                                     \
-static float _name ## _buffer_ntc_ram_allocation[20] = {0.0};       \
-static float _name ## _buffer_current_ram_allocation[10] = {0.0};   \
-static float _name ## _buffer_voltage_ram_allocation[10] = {0.0};   \
-static float _name ## _buffer_an15_ram_allocation[1] = {0.0};   \
-static acquisitions_params_t _name = ACQUISITIONS_INSTANCE(_name ## _buffer_ntc_ram_allocation, _name ## _buffer_current_ram_allocation, _name ## _buffer_voltage_ram_allocation, _name ## _buffer_an15_ram_allocation)
-
 // ----------------------------------------------------
 // ************** PROTOTYPES OF FUNCTIONS *************
 
@@ -354,21 +325,9 @@ NTC_STATUS      fu_calc_ntc(ntc_settings_t ntc_params, uint32_t ntc_pull_up, uin
 void            fu_hysteresis(hysteresis_params_t *var);
 
 void            fu_bus_management_task(BUS_MANAGEMENT_VAR *dp);
-uint16_t        fu_crc_16_ibm(void *_buffer, uint16_t length);
 
 uint32_t        fu_get_integer_value(float v);
 uint32_t        fu_get_decimal_value(float v, uint8_t numbers_after_coma);
 float           fu_get_float_value(uint32_t integer, uint8_t decimal);
-
-void            background_tasks(acquisitions_params_t *var);
-
-typedef enum
-{
-    __PE_DMA_NO_MORE_FREE_CHANNEL   = 1,
-    __PE_GROVE_MOTOR_NEW_DEVICE_ADDRESS = 2,
-            
-    __PE_MAX_FLAGS                  = 255
-} __PROGRAM_ERRORS;
-void            __program_errors(__PROGRAM_ERRORS code_error);
 
 #endif

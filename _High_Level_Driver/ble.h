@@ -258,7 +258,7 @@ static ble_pickit_t _var = BLE_PICKIT_INSTANCE(_name, _security)
 
 typedef void (*p_ble_function)(uint8_t *buffer);
 
-void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit, acquisitions_params_t *p_acquisitions);
+void ble_init(UART_MODULE uart_id, uint32_t data_rate, ble_pickit_t * p_ble_pickit);
 void ble_stack_tasks();
 
 extern __inline__ void __attribute__((always_inline)) ble_security_enabled(ble_pickit_t * p_ble_pickit)
