@@ -100,6 +100,37 @@ void _EXAMPLE_TIMER()
     } 
 }
 
+void _EXAMPLE_CRC16()
+{
+    static state_machine_t sm_example = {0};
+    static char string[] = "This is a CRC test.";   // CRC result should be 0xE5A6
+    uint16_t crc = 0;
+    float time = 0;
+    
+    switch (sm_example.index)
+    {
+        case _SETUP:
+            
+            // Do not forget to enable LOG driver.            
+            
+            //    dma_crc_16();
+            //    dma_crc_execute(string, (sizeof(string)-1));
+            //    while (!dma_crc_is_calculated(&crc));
+            
+            mResetTime();
+            crc = crc_16(string, (sizeof(string)-1));
+            time = (float) ((float)(mGetTick() - getTime) / (float)TICK_1US);
+            LOG("crc_16 (poly 0x8005): %4x (%f us)", crc, p_float(time));
+            
+            sm_example.index = _MAIN;
+            break;
+            
+        case _MAIN:
+            
+            break;
+    } 
+}
+
 /*********************************************************************************************
  * Start of _EXAMPLE_DMA_RAM_TO_RAM()
  * -------------------------------------------------------------------------------------------

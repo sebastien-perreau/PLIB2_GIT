@@ -9,6 +9,7 @@ typedef enum
 
 void _EXAMPLE_TICK_FUNCTIONS();
 void _EXAMPLE_TIMER();
+void _EXAMPLE_CRC16();
 void _EXAMPLE_DMA_RAM_TO_RAM();
 void _EXAMPLE_DMA_UART();
 void _EXAMPLE_DMA_SPI();
