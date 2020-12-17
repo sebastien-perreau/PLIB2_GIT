@@ -2,7 +2,7 @@
  * 
  *	Section 16 - Output Compare modules (1, 2, 3, 4 and 5)
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  *
  ********************************************************************/
 

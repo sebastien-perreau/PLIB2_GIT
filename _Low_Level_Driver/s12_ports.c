@@ -2,7 +2,7 @@
  * 
  *	Section 12 - PORTS module 
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  *
  ********************************************************************/
 

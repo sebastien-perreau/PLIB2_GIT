@@ -49,6 +49,7 @@
         <itemPath>../_Low_Level_Driver/s07_resets.h</itemPath>
         <itemPath>../_Low_Level_Driver/s08_interrupts.h</itemPath>
         <itemPath>../_Low_Level_Driver/s00_system.h</itemPath>
+        <itemPath>../_Low_Level_Driver/s34_can.h</itemPath>
       </logicalFolder>
       <itemPath>../defines.h</itemPath>
       <itemPath>../PLIB2.h</itemPath>
@@ -104,6 +105,7 @@
         <itemPath>../_Low_Level_Driver/s07_resets.c</itemPath>
         <itemPath>../_Low_Level_Driver/s08_interrupts.c</itemPath>
         <itemPath>../_Low_Level_Driver/s00_system.c</itemPath>
+        <itemPath>../_Low_Level_Driver/s34_can.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

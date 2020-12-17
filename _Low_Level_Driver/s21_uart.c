@@ -2,7 +2,7 @@
  * 
  *	Section 21 - UART modules (1, 2, 3, 4, 5 and 6)
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  *
  ********************************************************************/
 

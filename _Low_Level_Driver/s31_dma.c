@@ -2,7 +2,7 @@
  * 
  *	Section 31 - DMA modules (0 to 7)
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  *
  ********************************************************************/
 

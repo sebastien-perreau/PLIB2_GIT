@@ -1,14 +1,10 @@
 /*********************************************************************
-*	I2C modules
-*	Author : Sébastien PERREAU
-*
-*	Revision history	:
-*		04/12/2018		- Initial release
-*       feb. 2019       - Add comments
-*                       - Add i2c_master_state_machine function
-*                       - Modifications of I2C_PARAMS in order to add
-*                       the new features of 'i2c_master_state_machine'. 
-*********************************************************************/
+ * 
+ *	Section 24 - I2C modules (1, 2, 3, 4 and 5)
+ * 
+ *	Author : Sebastien PERREAU
+ * 
+ ********************************************************************/
 
 #include "../PLIB2.h"
 

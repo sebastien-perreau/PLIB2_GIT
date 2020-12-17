@@ -2,7 +2,7 @@
  * 
  *	Section 23 - SPI modules (1, 2, 3 and 4)
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  * 
 ********************************************************************/
 

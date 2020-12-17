@@ -29,6 +29,7 @@
 #include "_Low_Level_Driver/s23_spi.h"
 #include "_Low_Level_Driver/s24_i2c.h"
 #include "_Low_Level_Driver/s31_dma.h"
+#include "_Low_Level_Driver/s34_can.h"
 
 #include "_High_Level_Driver/software_pwm.h"
 #include "_High_Level_Driver/lin.h"

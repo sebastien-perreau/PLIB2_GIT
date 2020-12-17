@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=../_Experimental/_EXAMPLES_.c ../_Experimental/_LOG.c ../_Experimental/pink_lady.c ../_Experimental/sd_card.c ../_External_Components/e_mcp23s17.c ../_External_Components/e_25lc512.c ../_External_Components/e_at42qt2120.c ../_External_Components/e_pca9685.c ../_External_Components/e_veml7700.c ../_External_Components/e_tps92662.c ../_External_Components/e_grove_motor_tb6612fng.c ../_High_Level_Driver/ble.c ../_High_Level_Driver/utilities.c ../_High_Level_Driver/string_advance.c ../_High_Level_Driver/lin.c ../_High_Level_Driver/software_pwm.c ../_Low_Level_Driver/s14_timers.c ../_Low_Level_Driver/s23_spi.c ../_Low_Level_Driver/s17_adc.c ../_Low_Level_Driver/s16_output_compare.c ../_Low_Level_Driver/s24_i2c.c ../_Low_Level_Driver/s12_ports.c ../_Low_Level_Driver/s21_uart.c ../_Low_Level_Driver/s31_dma.c ../_Low_Level_Driver/s07_resets.c ../_Low_Level_Driver/s08_interrupts.c ../_Low_Level_Driver/s00_system.c ../_High_Level_Driver/crc_16.c ../_High_Level_Driver/errors.c
+SOURCEFILES_QUOTED_IF_SPACED=../_Experimental/_EXAMPLES_.c ../_Experimental/_LOG.c ../_Experimental/pink_lady.c ../_Experimental/sd_card.c ../_External_Components/e_mcp23s17.c ../_External_Components/e_25lc512.c ../_External_Components/e_at42qt2120.c ../_External_Components/e_pca9685.c ../_External_Components/e_veml7700.c ../_External_Components/e_tps92662.c ../_External_Components/e_grove_motor_tb6612fng.c ../_High_Level_Driver/ble.c ../_High_Level_Driver/utilities.c ../_High_Level_Driver/string_advance.c ../_High_Level_Driver/lin.c ../_High_Level_Driver/software_pwm.c ../_High_Level_Driver/crc_16.c ../_High_Level_Driver/errors.c ../_Low_Level_Driver/s14_timers.c ../_Low_Level_Driver/s23_spi.c ../_Low_Level_Driver/s17_adc.c ../_Low_Level_Driver/s16_output_compare.c ../_Low_Level_Driver/s24_i2c.c ../_Low_Level_Driver/s12_ports.c ../_Low_Level_Driver/s21_uart.c ../_Low_Level_Driver/s31_dma.c ../_Low_Level_Driver/s07_resets.c ../_Low_Level_Driver/s08_interrupts.c ../_Low_Level_Driver/s00_system.c ../_Low_Level_Driver/s34_can.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o ${OBJECTDIR}/_ext/1717005096/_LOG.o ${OBJECTDIR}/_ext/1717005096/pink_lady.o ${OBJECTDIR}/_ext/1717005096/sd_card.o ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o ${OBJECTDIR}/_ext/830869050/e_25lc512.o ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o ${OBJECTDIR}/_ext/830869050/e_pca9685.o ${OBJECTDIR}/_ext/830869050/e_veml7700.o ${OBJECTDIR}/_ext/830869050/e_tps92662.o ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o ${OBJECTDIR}/_ext/1180237584/ble.o ${OBJECTDIR}/_ext/1180237584/utilities.o ${OBJECTDIR}/_ext/1180237584/string_advance.o ${OBJECTDIR}/_ext/1180237584/lin.o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ${OBJECTDIR}/_ext/376376446/s14_timers.o ${OBJECTDIR}/_ext/376376446/s23_spi.o ${OBJECTDIR}/_ext/376376446/s17_adc.o ${OBJECTDIR}/_ext/376376446/s16_output_compare.o ${OBJECTDIR}/_ext/376376446/s24_i2c.o ${OBJECTDIR}/_ext/376376446/s12_ports.o ${OBJECTDIR}/_ext/376376446/s21_uart.o ${OBJECTDIR}/_ext/376376446/s31_dma.o ${OBJECTDIR}/_ext/376376446/s07_resets.o ${OBJECTDIR}/_ext/376376446/s08_interrupts.o ${OBJECTDIR}/_ext/376376446/s00_system.o ${OBJECTDIR}/_ext/1180237584/crc_16.o ${OBJECTDIR}/_ext/1180237584/errors.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o.d ${OBJECTDIR}/_ext/1717005096/_LOG.o.d ${OBJECTDIR}/_ext/1717005096/pink_lady.o.d ${OBJECTDIR}/_ext/1717005096/sd_card.o.d ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o.d ${OBJECTDIR}/_ext/830869050/e_25lc512.o.d ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o.d ${OBJECTDIR}/_ext/830869050/e_pca9685.o.d ${OBJECTDIR}/_ext/830869050/e_veml7700.o.d ${OBJECTDIR}/_ext/830869050/e_tps92662.o.d ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o.d ${OBJECTDIR}/_ext/1180237584/ble.o.d ${OBJECTDIR}/_ext/1180237584/utilities.o.d ${OBJECTDIR}/_ext/1180237584/string_advance.o.d ${OBJECTDIR}/_ext/1180237584/lin.o.d ${OBJECTDIR}/_ext/1180237584/software_pwm.o.d ${OBJECTDIR}/_ext/376376446/s14_timers.o.d ${OBJECTDIR}/_ext/376376446/s23_spi.o.d ${OBJECTDIR}/_ext/376376446/s17_adc.o.d ${OBJECTDIR}/_ext/376376446/s16_output_compare.o.d ${OBJECTDIR}/_ext/376376446/s24_i2c.o.d ${OBJECTDIR}/_ext/376376446/s12_ports.o.d ${OBJECTDIR}/_ext/376376446/s21_uart.o.d ${OBJECTDIR}/_ext/376376446/s31_dma.o.d ${OBJECTDIR}/_ext/376376446/s07_resets.o.d ${OBJECTDIR}/_ext/376376446/s08_interrupts.o.d ${OBJECTDIR}/_ext/376376446/s00_system.o.d ${OBJECTDIR}/_ext/1180237584/crc_16.o.d ${OBJECTDIR}/_ext/1180237584/errors.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o ${OBJECTDIR}/_ext/1717005096/_LOG.o ${OBJECTDIR}/_ext/1717005096/pink_lady.o ${OBJECTDIR}/_ext/1717005096/sd_card.o ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o ${OBJECTDIR}/_ext/830869050/e_25lc512.o ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o ${OBJECTDIR}/_ext/830869050/e_pca9685.o ${OBJECTDIR}/_ext/830869050/e_veml7700.o ${OBJECTDIR}/_ext/830869050/e_tps92662.o ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o ${OBJECTDIR}/_ext/1180237584/ble.o ${OBJECTDIR}/_ext/1180237584/utilities.o ${OBJECTDIR}/_ext/1180237584/string_advance.o ${OBJECTDIR}/_ext/1180237584/lin.o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ${OBJECTDIR}/_ext/1180237584/crc_16.o ${OBJECTDIR}/_ext/1180237584/errors.o ${OBJECTDIR}/_ext/376376446/s14_timers.o ${OBJECTDIR}/_ext/376376446/s23_spi.o ${OBJECTDIR}/_ext/376376446/s17_adc.o ${OBJECTDIR}/_ext/376376446/s16_output_compare.o ${OBJECTDIR}/_ext/376376446/s24_i2c.o ${OBJECTDIR}/_ext/376376446/s12_ports.o ${OBJECTDIR}/_ext/376376446/s21_uart.o ${OBJECTDIR}/_ext/376376446/s31_dma.o ${OBJECTDIR}/_ext/376376446/s07_resets.o ${OBJECTDIR}/_ext/376376446/s08_interrupts.o ${OBJECTDIR}/_ext/376376446/s00_system.o ${OBJECTDIR}/_ext/376376446/s34_can.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o.d ${OBJECTDIR}/_ext/1717005096/_LOG.o.d ${OBJECTDIR}/_ext/1717005096/pink_lady.o.d ${OBJECTDIR}/_ext/1717005096/sd_card.o.d ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o.d ${OBJECTDIR}/_ext/830869050/e_25lc512.o.d ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o.d ${OBJECTDIR}/_ext/830869050/e_pca9685.o.d ${OBJECTDIR}/_ext/830869050/e_veml7700.o.d ${OBJECTDIR}/_ext/830869050/e_tps92662.o.d ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o.d ${OBJECTDIR}/_ext/1180237584/ble.o.d ${OBJECTDIR}/_ext/1180237584/utilities.o.d ${OBJECTDIR}/_ext/1180237584/string_advance.o.d ${OBJECTDIR}/_ext/1180237584/lin.o.d ${OBJECTDIR}/_ext/1180237584/software_pwm.o.d ${OBJECTDIR}/_ext/1180237584/crc_16.o.d ${OBJECTDIR}/_ext/1180237584/errors.o.d ${OBJECTDIR}/_ext/376376446/s14_timers.o.d ${OBJECTDIR}/_ext/376376446/s23_spi.o.d ${OBJECTDIR}/_ext/376376446/s17_adc.o.d ${OBJECTDIR}/_ext/376376446/s16_output_compare.o.d ${OBJECTDIR}/_ext/376376446/s24_i2c.o.d ${OBJECTDIR}/_ext/376376446/s12_ports.o.d ${OBJECTDIR}/_ext/376376446/s21_uart.o.d ${OBJECTDIR}/_ext/376376446/s31_dma.o.d ${OBJECTDIR}/_ext/376376446/s07_resets.o.d ${OBJECTDIR}/_ext/376376446/s08_interrupts.o.d ${OBJECTDIR}/_ext/376376446/s00_system.o.d ${OBJECTDIR}/_ext/376376446/s34_can.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o ${OBJECTDIR}/_ext/1717005096/_LOG.o ${OBJECTDIR}/_ext/1717005096/pink_lady.o ${OBJECTDIR}/_ext/1717005096/sd_card.o ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o ${OBJECTDIR}/_ext/830869050/e_25lc512.o ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o ${OBJECTDIR}/_ext/830869050/e_pca9685.o ${OBJECTDIR}/_ext/830869050/e_veml7700.o ${OBJECTDIR}/_ext/830869050/e_tps92662.o ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o ${OBJECTDIR}/_ext/1180237584/ble.o ${OBJECTDIR}/_ext/1180237584/utilities.o ${OBJECTDIR}/_ext/1180237584/string_advance.o ${OBJECTDIR}/_ext/1180237584/lin.o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ${OBJECTDIR}/_ext/376376446/s14_timers.o ${OBJECTDIR}/_ext/376376446/s23_spi.o ${OBJECTDIR}/_ext/376376446/s17_adc.o ${OBJECTDIR}/_ext/376376446/s16_output_compare.o ${OBJECTDIR}/_ext/376376446/s24_i2c.o ${OBJECTDIR}/_ext/376376446/s12_ports.o ${OBJECTDIR}/_ext/376376446/s21_uart.o ${OBJECTDIR}/_ext/376376446/s31_dma.o ${OBJECTDIR}/_ext/376376446/s07_resets.o ${OBJECTDIR}/_ext/376376446/s08_interrupts.o ${OBJECTDIR}/_ext/376376446/s00_system.o ${OBJECTDIR}/_ext/1180237584/crc_16.o ${OBJECTDIR}/_ext/1180237584/errors.o
+OBJECTFILES=${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o ${OBJECTDIR}/_ext/1717005096/_LOG.o ${OBJECTDIR}/_ext/1717005096/pink_lady.o ${OBJECTDIR}/_ext/1717005096/sd_card.o ${OBJECTDIR}/_ext/830869050/e_mcp23s17.o ${OBJECTDIR}/_ext/830869050/e_25lc512.o ${OBJECTDIR}/_ext/830869050/e_at42qt2120.o ${OBJECTDIR}/_ext/830869050/e_pca9685.o ${OBJECTDIR}/_ext/830869050/e_veml7700.o ${OBJECTDIR}/_ext/830869050/e_tps92662.o ${OBJECTDIR}/_ext/830869050/e_grove_motor_tb6612fng.o ${OBJECTDIR}/_ext/1180237584/ble.o ${OBJECTDIR}/_ext/1180237584/utilities.o ${OBJECTDIR}/_ext/1180237584/string_advance.o ${OBJECTDIR}/_ext/1180237584/lin.o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ${OBJECTDIR}/_ext/1180237584/crc_16.o ${OBJECTDIR}/_ext/1180237584/errors.o ${OBJECTDIR}/_ext/376376446/s14_timers.o ${OBJECTDIR}/_ext/376376446/s23_spi.o ${OBJECTDIR}/_ext/376376446/s17_adc.o ${OBJECTDIR}/_ext/376376446/s16_output_compare.o ${OBJECTDIR}/_ext/376376446/s24_i2c.o ${OBJECTDIR}/_ext/376376446/s12_ports.o ${OBJECTDIR}/_ext/376376446/s21_uart.o ${OBJECTDIR}/_ext/376376446/s31_dma.o ${OBJECTDIR}/_ext/376376446/s07_resets.o ${OBJECTDIR}/_ext/376376446/s08_interrupts.o ${OBJECTDIR}/_ext/376376446/s00_system.o ${OBJECTDIR}/_ext/376376446/s34_can.o
 
 # Source Files
-SOURCEFILES=../_Experimental/_EXAMPLES_.c ../_Experimental/_LOG.c ../_Experimental/pink_lady.c ../_Experimental/sd_card.c ../_External_Components/e_mcp23s17.c ../_External_Components/e_25lc512.c ../_External_Components/e_at42qt2120.c ../_External_Components/e_pca9685.c ../_External_Components/e_veml7700.c ../_External_Components/e_tps92662.c ../_External_Components/e_grove_motor_tb6612fng.c ../_High_Level_Driver/ble.c ../_High_Level_Driver/utilities.c ../_High_Level_Driver/string_advance.c ../_High_Level_Driver/lin.c ../_High_Level_Driver/software_pwm.c ../_Low_Level_Driver/s14_timers.c ../_Low_Level_Driver/s23_spi.c ../_Low_Level_Driver/s17_adc.c ../_Low_Level_Driver/s16_output_compare.c ../_Low_Level_Driver/s24_i2c.c ../_Low_Level_Driver/s12_ports.c ../_Low_Level_Driver/s21_uart.c ../_Low_Level_Driver/s31_dma.c ../_Low_Level_Driver/s07_resets.c ../_Low_Level_Driver/s08_interrupts.c ../_Low_Level_Driver/s00_system.c ../_High_Level_Driver/crc_16.c ../_High_Level_Driver/errors.c
+SOURCEFILES=../_Experimental/_EXAMPLES_.c ../_Experimental/_LOG.c ../_Experimental/pink_lady.c ../_Experimental/sd_card.c ../_External_Components/e_mcp23s17.c ../_External_Components/e_25lc512.c ../_External_Components/e_at42qt2120.c ../_External_Components/e_pca9685.c ../_External_Components/e_veml7700.c ../_External_Components/e_tps92662.c ../_External_Components/e_grove_motor_tb6612fng.c ../_High_Level_Driver/ble.c ../_High_Level_Driver/utilities.c ../_High_Level_Driver/string_advance.c ../_High_Level_Driver/lin.c ../_High_Level_Driver/software_pwm.c ../_High_Level_Driver/crc_16.c ../_High_Level_Driver/errors.c ../_Low_Level_Driver/s14_timers.c ../_Low_Level_Driver/s23_spi.c ../_Low_Level_Driver/s17_adc.c ../_Low_Level_Driver/s16_output_compare.c ../_Low_Level_Driver/s24_i2c.c ../_Low_Level_Driver/s12_ports.c ../_Low_Level_Driver/s21_uart.c ../_Low_Level_Driver/s31_dma.c ../_Low_Level_Driver/s07_resets.c ../_Low_Level_Driver/s08_interrupts.c ../_Low_Level_Driver/s00_system.c ../_Low_Level_Driver/s34_can.c
 
 
 
@@ -203,6 +203,18 @@ ${OBJECTDIR}/_ext/1180237584/software_pwm.o: ../_High_Level_Driver/software_pwm.
 	@${RM} ${OBJECTDIR}/_ext/1180237584/software_pwm.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/software_pwm.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/software_pwm.o.d" -o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ../_High_Level_Driver/software_pwm.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
+${OBJECTDIR}/_ext/1180237584/crc_16.o: ../_High_Level_Driver/crc_16.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" -o ${OBJECTDIR}/_ext/1180237584/crc_16.o ../_High_Level_Driver/crc_16.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+	
+${OBJECTDIR}/_ext/1180237584/errors.o: ../_High_Level_Driver/errors.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/errors.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/errors.o.d" -o ${OBJECTDIR}/_ext/1180237584/errors.o ../_High_Level_Driver/errors.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+	
 ${OBJECTDIR}/_ext/376376446/s14_timers.o: ../_Low_Level_Driver/s14_timers.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/_ext/376376446" 
 	@${RM} ${OBJECTDIR}/_ext/376376446/s14_timers.o.d 
@@ -269,17 +281,11 @@ ${OBJECTDIR}/_ext/376376446/s00_system.o: ../_Low_Level_Driver/s00_system.c  nbp
 	@${RM} ${OBJECTDIR}/_ext/376376446/s00_system.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/376376446/s00_system.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/376376446/s00_system.o.d" -o ${OBJECTDIR}/_ext/376376446/s00_system.o ../_Low_Level_Driver/s00_system.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
-${OBJECTDIR}/_ext/1180237584/crc_16.o: ../_High_Level_Driver/crc_16.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o 
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" -o ${OBJECTDIR}/_ext/1180237584/crc_16.o ../_High_Level_Driver/crc_16.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
-	
-${OBJECTDIR}/_ext/1180237584/errors.o: ../_High_Level_Driver/errors.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o 
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/errors.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/errors.o.d" -o ${OBJECTDIR}/_ext/1180237584/errors.o ../_High_Level_Driver/errors.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+${OBJECTDIR}/_ext/376376446/s34_can.o: ../_Low_Level_Driver/s34_can.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/376376446" 
+	@${RM} ${OBJECTDIR}/_ext/376376446/s34_can.o.d 
+	@${RM} ${OBJECTDIR}/_ext/376376446/s34_can.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/376376446/s34_can.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/376376446/s34_can.o.d" -o ${OBJECTDIR}/_ext/376376446/s34_can.o ../_Low_Level_Driver/s34_can.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
 else
 ${OBJECTDIR}/_ext/1717005096/_EXAMPLES_.o: ../_Experimental/_EXAMPLES_.c  nbproject/Makefile-${CND_CONF}.mk
@@ -378,6 +384,18 @@ ${OBJECTDIR}/_ext/1180237584/software_pwm.o: ../_High_Level_Driver/software_pwm.
 	@${RM} ${OBJECTDIR}/_ext/1180237584/software_pwm.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/software_pwm.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/software_pwm.o.d" -o ${OBJECTDIR}/_ext/1180237584/software_pwm.o ../_High_Level_Driver/software_pwm.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
+${OBJECTDIR}/_ext/1180237584/crc_16.o: ../_High_Level_Driver/crc_16.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" -o ${OBJECTDIR}/_ext/1180237584/crc_16.o ../_High_Level_Driver/crc_16.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+	
+${OBJECTDIR}/_ext/1180237584/errors.o: ../_High_Level_Driver/errors.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/errors.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/errors.o.d" -o ${OBJECTDIR}/_ext/1180237584/errors.o ../_High_Level_Driver/errors.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+	
 ${OBJECTDIR}/_ext/376376446/s14_timers.o: ../_Low_Level_Driver/s14_timers.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/_ext/376376446" 
 	@${RM} ${OBJECTDIR}/_ext/376376446/s14_timers.o.d 
@@ -444,17 +462,11 @@ ${OBJECTDIR}/_ext/376376446/s00_system.o: ../_Low_Level_Driver/s00_system.c  nbp
 	@${RM} ${OBJECTDIR}/_ext/376376446/s00_system.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/376376446/s00_system.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/376376446/s00_system.o.d" -o ${OBJECTDIR}/_ext/376376446/s00_system.o ../_Low_Level_Driver/s00_system.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
-${OBJECTDIR}/_ext/1180237584/crc_16.o: ../_High_Level_Driver/crc_16.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/crc_16.o 
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/crc_16.o.d" -o ${OBJECTDIR}/_ext/1180237584/crc_16.o ../_High_Level_Driver/crc_16.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
-	
-${OBJECTDIR}/_ext/1180237584/errors.o: ../_High_Level_Driver/errors.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1180237584" 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1180237584/errors.o 
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1180237584/errors.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/1180237584/errors.o.d" -o ${OBJECTDIR}/_ext/1180237584/errors.o ../_High_Level_Driver/errors.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
+${OBJECTDIR}/_ext/376376446/s34_can.o: ../_Low_Level_Driver/s34_can.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/376376446" 
+	@${RM} ${OBJECTDIR}/_ext/376376446/s34_can.o.d 
+	@${RM} ${OBJECTDIR}/_ext/376376446/s34_can.o 
+	@${FIXDEPS} "${OBJECTDIR}/_ext/376376446/s34_can.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -O3 -MMD -MF "${OBJECTDIR}/_ext/376376446/s34_can.o.d" -o ${OBJECTDIR}/_ext/376376446/s34_can.o ../_Low_Level_Driver/s34_can.c    -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -mdfp=${DFP_DIR}  
 	
 endif
 

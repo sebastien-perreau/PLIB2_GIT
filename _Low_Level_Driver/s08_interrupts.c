@@ -2,7 +2,7 @@
  * 
  *	Section 08 - Interrupts module
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  * 
  ********************************************************************/
 

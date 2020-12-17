@@ -2,7 +2,7 @@
  * 
  *	Section 17 - ADC module
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  * 
  *  Note:
  *  -----

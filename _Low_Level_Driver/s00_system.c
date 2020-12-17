@@ -2,7 +2,7 @@
  * 
  *	Section 00 - System driver
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  * 
  ********************************************************************/
 

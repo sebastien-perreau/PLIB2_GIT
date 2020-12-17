@@ -2,7 +2,7 @@
  * 
  *	Section 07 - Reset driver
  * 
- *	Author : Sébastien PERREAU
+ *	Author : Sebastien PERREAU
  * 
  ********************************************************************/
 
