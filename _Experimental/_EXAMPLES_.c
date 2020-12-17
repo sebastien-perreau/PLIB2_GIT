@@ -1796,3 +1796,112 @@ void _EXAMPLE_SD_CARD()
             break;
     } 
 }
+
+void _EXAMPLE_GROVE_MOTOR_TB6612FNG()
+{
+    GROVE_MOTOR_DEF(grove_motor, I2C2, 0x33);
+    BUS_MANAGEMENT_DEF(bm_i2c2, &grove_motor.i2c_params.bus_management_params);
+    SWITCH_DEF(sw1, SWITCH1, ACTIVE_LOW);
+    
+    // 1 tour = 200 full steps
+    static uint8_t rpm = 120;   // 120 tours par minute -> 2 tours par second -> 400 pas par second -> 1 pas = 2,5ms
+    static const uint64_t tick_2_5ms = 200000;    
+    static state_machine_t sm_stepper = {0};
+    static uint64_t time_stepper_drive = 0;    
+    static uint16_t next_position = 2000;
+    static uint16_t curr_position = 2000;
+    
+    static state_machine_t sm_example = {0};
+    
+    switch (sm_example.index)
+    {
+        case _SETUP:          
+                        
+            sm_example.index = _MAIN;
+            break;
+            
+        case _MAIN:
+            
+            switch (sw1.indice)
+            {
+                case 0:
+                    next_position = 2000;
+                    break;
+
+                case 1:
+                    next_position = 3000;
+                    break;
+
+                case 2:
+                    next_position = 500;
+                    break;
+
+                default:
+                    sw1.indice = 0;
+                    break;
+            }
+            
+            switch (sm_stepper.index)
+            {
+                case 0:
+                    
+                    mUpdateTick(sm_stepper.tick);
+                    sm_stepper.index++;
+                    break;
+
+                case 1:
+                    
+                    if (mTickCompare(sm_stepper.tick) >= TICK_100MS)
+                    {
+                        e_grove_motor_stepper_run(&grove_motor, GROVE_MOTOR_FULL_STEP, rpm, -200*20);
+                        sm_stepper.index++;
+                        mUpdateTick(sm_stepper.tick);
+                    }
+                    break;
+
+                case 2:
+
+                    if (mTickCompare(sm_stepper.tick) > (TICK_1S*10))
+                    {
+                        e_grove_motor_stepper_run(&grove_motor, GROVE_MOTOR_FULL_STEP, rpm, 2000);
+                        sm_stepper.index++;
+                        mUpdateTick(sm_stepper.tick);
+                    }
+                    break;
+
+                case 3:
+
+                    if (mTickCompare(sm_stepper.tick) > (TICK_1S*5))
+                    {
+                        sm_stepper.index++;
+                        mUpdateTick(sm_stepper.tick);
+                    }
+                    break;
+
+                case 4:
+
+                    if (next_position != curr_position)
+                    {
+                        e_grove_motor_stepper_run(&grove_motor, GROVE_MOTOR_FULL_STEP, rpm, (next_position - curr_position));
+                        time_stepper_drive = abs((next_position - curr_position)) * tick_2_5ms;
+                        curr_position = next_position;
+                        sm_stepper.index++;
+                        mUpdateTick(sm_stepper.tick);
+                    }
+                    break;
+
+                case 5:
+
+                    if (mTickCompare(sm_stepper.tick) > time_stepper_drive)
+                    {
+                        sm_stepper.index = 4;
+                    }
+                    break;
+            }
+            
+            fu_switch(&sw1);
+            fu_bus_management_task(&bm_i2c2);
+            e_grove_motor_tb6612fng_deamon(&grove_motor);
+            break;
+    }
+}
