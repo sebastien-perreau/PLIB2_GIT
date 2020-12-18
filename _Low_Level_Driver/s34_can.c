@@ -202,6 +202,42 @@ void can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed)
     
     __can_set_module_event(id, CAN_MODULE_EVENT_RX);
     
+    
+    
+    
+    
+    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.SID = 0x7ff;
+    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.MIDE = 0;
+    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.EID = 0;
+    
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.SID = 0x200;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.EID = 0;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
+    
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.SID = 0x201;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.EID = 0;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
+    
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.SID = 0x202;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.EID = 0;
+    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
+    
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].MSEL = CAN_MASK0;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].FSEL = CAN_CHANNEL1;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].FLTEN = ENABLE;
+    
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].MSEL = CAN_MASK0;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].FSEL = CAN_CHANNEL1;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].FLTEN = ENABLE;
+    
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].MSEL = CAN_MASK0;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].FSEL = CAN_CHANNEL1;
+    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].FLTEN = ENABLE;
+    
+    
+    
+    
+    
     __can_set_op_mode(id, CAN_OP_MODE_NORMAL);
     
 //    LOG("Bus speed: %dKBPS / BRP: %d / N: %d / SAM: %d / SJW: %dTq / PRSEG: %dTq / SEG1PH: %dTq / SEG2PH: %dTq", 
