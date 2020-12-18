@@ -62,9 +62,6 @@
     #define OFF                         (0)
     #define ENABLE                      (1)
     #define DISABLE                     (0)
-    #define ALL                         (0xFFFFFFFF)
-    #define ALL_ON                      (0xFFFFFFFF)
-    #define ALL_OFF                     (0x00000000)
     #define BLINK                       (2)
     #define BLINK_INV                   (3)
 

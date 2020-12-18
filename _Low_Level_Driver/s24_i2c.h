@@ -184,7 +184,7 @@ typedef union
         unsigned            SCLREL:1;
         unsigned            SIDL:1;
         unsigned            :1;
-        unsigned            BUS_ON:1;
+        unsigned            PERIPHERAL_ENABLE:1;
         unsigned            :16;
     };
     struct 

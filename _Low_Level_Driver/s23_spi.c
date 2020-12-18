@@ -111,7 +111,7 @@ void spi_init(SPI_MODULE id, spi_event_handler_t evt_handler, IRQ_EVENT_TYPE eve
 
 void spi_enable(SPI_MODULE id, bool enable)
 {   
-    p_spi_registers_array[id]->SPICON.SPION = enable;
+    p_spi_registers_array[id]->SPICON.PERIPHERAL_ENABLE = enable;
 }
 
 void spi_set_mode(SPI_MODULE id, SPI_CONFIG mode)

@@ -116,7 +116,7 @@ typedef union
         unsigned                        DISSDO:1;
         unsigned                        SIDL:1;
         unsigned                        :1;
-        unsigned                        SPION:1;
+        unsigned                        PERIPHERAL_ENABLE:1;
         unsigned                        ENHBUF:1;
         unsigned                        SPIFE:1;
         unsigned                        :5;

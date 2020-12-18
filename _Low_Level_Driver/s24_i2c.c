@@ -82,7 +82,7 @@ void i2c_init_as_master(    I2C_MODULE id,
  ******************************************************************************/
 void i2c_enable(I2C_MODULE id, bool enable)
 {
-    p_i2c_registers_array[id]->I2CCON.BUS_ON = enable;
+    p_i2c_registers_array[id]->I2CCON.PERIPHERAL_ENABLE = enable;
 }
 
 /*******************************************************************************
