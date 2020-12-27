@@ -7,7 +7,7 @@
  * 
  * Up to 32 FIFOs channels, each contains 1 .. 32 Message Buffer. 1 Message buffer can be 8 or 16 bytes length.
  */
-#define CAN_SIZE_FIFO_RAM_ALLOCATION (2 * 16 * 16)   // Allocation of 2 FIFOs, each 16 Message Buffer deep of 16 bytes.
+#define CAN_SIZE_FIFO_RAM_ALLOCATION (2 * 32 * 16)   // Allocation of 2 FIFOs, each 16 Message Buffer deep of 16 bytes.
 
 typedef enum
 {
@@ -122,6 +122,12 @@ typedef enum
 
 typedef enum
 {
+    CAN_BUS_BIT_TIMING_AUTO             = 1,
+    CAN_BUS_BIT_TIMING_FIXED            = 0
+} CAN_BUS_BIT_TIMING;
+
+typedef enum
+{
     CAN_OP_MODE_NORMAL                  = 0,
     CAN_OP_MODE_DISABLE                 = 1,
     CAN_OP_MODE_LOOPBACK                = 2,
@@ -141,7 +147,7 @@ typedef enum
     CAN_BIT_7QT,
     CAN_BIT_8QT
 } CAN_BIT_TIME_QUANTUM;
-// Highest Message Priority / 10 = High Intermediate Message Priority / 01 = Low Intermediate Message Priority / 00 = Lowest
+
 typedef enum
 {
     CAN_FIFOCON_TX_PRIORITY_LOWEST              = 0,
@@ -259,20 +265,6 @@ typedef union
         uint32_t                v32;
     };
 } can_rxf_reg_t;
-    
-typedef union 
-{
-    struct 
-    {
-        unsigned                FSEL:5;             // [ R/W ] - FIFO Selection bits (11111 = Message matching filter is stored in FIFO buffer 31 / ... / 00000 = Message matching filter is stored in FIFO buffer 0)
-        unsigned                MSEL:2;             // [ R/W ] - Filter x Mask Select bits (11 = Acceptance Mask 3 selected / 10 = Acceptance Mask 2 selected / 01 = Acceptance Mask 1 selected / 00 = Acceptance Mask 0 selected)
-        unsigned                FLTEN:1;            // [ R/W ] - Filter x Enable bit
-    };
-    struct 
-    {
-        uint8_t                 v8;
-    };
-} can_fltcon_reg_t;
     
 typedef union 
 {
@@ -468,7 +460,9 @@ typedef struct
 
 typedef struct
 {
-    volatile can_fltcon_reg_t           CANFLTCON[4];      // See union for more details
+    volatile uint8_t                    CANFLTCON[4];   // FSEL:5 [ R/W ] - FIFO Selection bits (11111 = Message matching filter is stored in FIFO buffer 31 / ... / 00000 = Message matching filter is stored in FIFO buffer 0)
+                                                        // MSEL:2 [ R/W ] - Filter x Mask Select bits (11 = Acceptance Mask 3 selected / 10 = Acceptance Mask 2 selected / 01 = Acceptance Mask 1 selected / 00 = Acceptance Mask 0 selected)
+                                                        // FLTEN:1 [ R/W ] - Filter x Enable bit
     volatile uint32_t                   CANFLTCONCLR;
     volatile uint32_t                   CANFLTCONSET;
     volatile uint32_t                   CANFLTCONINV;
@@ -543,9 +537,160 @@ typedef struct
     
 } can_registers_t;
 
-void can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed);
+typedef union 
+{
+    struct 
+    {
+        uint8_t                         BYTE4;
+        uint8_t                         BYTE5;
+        uint8_t                         BYTE6;
+        uint8_t                         BYTE7;
+    };
+    struct 
+    {
+        uint32_t                        v32;
+    };
+} can_message_buffer_data1_t;
+
+typedef union 
+{
+    struct 
+    {
+        uint8_t                         BYTE0;
+        uint8_t                         BYTE1;
+        uint8_t                         BYTE2;
+        uint8_t                         BYTE3;
+    };
+    struct 
+    {
+        uint32_t                        v32;
+    };
+} can_message_buffer_data0_t;
+
+typedef union 
+{
+    struct 
+    {
+        unsigned                        DLC:4;          // Data Length Code bits (1xxx = Module will transmit 8 bytes / 0111 = 7 bytes of data will be transmitted / ... / 0001 = 1 byte of data will be transmitted / 0000 = 0 bytes of data will be transmitted)
+        unsigned                        RB0:1;          // Reserved bit 0. The user application must set this bit to ?0? per the CAN Specification 2.0B.
+        unsigned                        :3;
+        unsigned                        RB1:1;          // Reserved bit 1. The user application must set this bit to ?0? per the CAN Specification 2.0B.
+        unsigned                        RTR:1;          // Remote Transmission Request bit (1 = Message is a remote transmission request / 0 = Message is not a remote transmission request)
+        unsigned                        EID:18;         // Extended Identifier bits
+        unsigned                        IDE:1;          // Extended Identifier bit (1 = Message will transmit extended identifier / 0 = Message will transmit standard identifier)
+        unsigned                        SRR:1;          // Substitute Remote Request bit (In case of a standard message format (IDE = 0), this bit is don?t care. / In case of an extended message format (IDE = 1), this bit should always be set.)
+    };
+    struct 
+    {
+        uint32_t                        v32;
+    };
+} can_message_buffer_eid_t;
+
+typedef union 
+{
+    struct 
+    {
+        unsigned                        SID:11;         // Standard ID 11 bits
+        unsigned                        :21;
+    };
+    struct 
+    {
+        uint32_t                        v32;
+    };
+} can_message_buffer_sid_t;
+
+typedef struct
+{
+    can_message_buffer_sid_t   msg_sid;
+    can_message_buffer_eid_t   msg_eid;
+    can_message_buffer_data0_t msg_data_0_3;
+    can_message_buffer_data1_t msg_data_4_7;
+} can_message_buffer_t;
+
+typedef enum
+{
+    CAN_READ_FRAME              = 1,
+    CAN_WRITE_FRAME             = 0,
+            
+    CAN_STD_ID                  = 0,
+    CAN_XTD_ID                  = 1,
+    
+    CAN_DATA_0_BYTE             = 0,
+    CAN_DATA_1_BYTE             = 1,
+    CAN_DATA_2_BYTES            = 2,
+    CAN_DATA_3_BYTES            = 3,
+    CAN_DATA_4_BYTES            = 4,
+    CAN_DATA_5_BYTES            = 5,
+    CAN_DATA_6_BYTES            = 6,
+    CAN_DATA_7_BYTES            = 7,
+    CAN_DATA_8_BYTES            = 8            
+} CAN_FRAME_SETUP;
+
+typedef struct
+{
+    can_message_buffer_t        frame;
+    bool                        is_receive_updated;
+    bool                        force_transfer;
+    bool                        read_write_type;
+    uint64_t                    period;
+    uint64_t                    tick;
+} can_frame_params_t;
+
+#define CAN_MESSAGE_BUFFER_INSTANCE(_id, _extended_id, _data_length)                \
+{                                                                                   \
+	.msg_sid.SID = (_id & 0x7ff),                                                   \
+    .msg_eid = {_data_length, 0, 0, 0, (_id >> 11), _extended_id, _extended_id}, \
+    .msg_data_0_3 = 0,                                                   \
+    .msg_data_4_7 = 0,                                                   \
+}
+
+#define CAN_FRAME_INSTANCE(_read_write_type, _id, _extended_id, _data_length, _period)      \
+{                                                                                   \
+	.frame = CAN_MESSAGE_BUFFER_INSTANCE(_id, _extended_id, _data_length),          \
+    .is_receive_updated = false,                                                    \
+    .force_transfer = false,                                                        \
+    .read_write_type = _read_write_type,                                            \
+    .period = _period,                                                              \
+    .tick = 0                                                                       \
+}
+
+#define CAN_LINK_STRUCTURE_TO_FRAME(_name, _can_frame, _structure_t)        static _structure_t * _name = (_structure_t *) &_can_frame.frame.msg_data_0_3.BYTE0;
+#define CAN_FRAME_TX_DEF(_name, _id, _extended_id, _data_length, _period)   CAN_FRAME_DEF(_name, CAN_WRITE_FRAME, _id, _extended_id, _data_length, _period)
+#define CAN_FRAME_RX_DEF(_name, _id, _extended_id)                          CAN_FRAME_DEF(_name, CAN_READ_FRAME, _id, _extended_id, 0, 0)
+#define CAN_FRAME_DEF(_name, _read_write_type, _id, _extended_id, _data_length, _period)    \
+static can_frame_params_t _name = CAN_FRAME_INSTANCE(_read_write_type, _id, _extended_id, _data_length, _period)
+
+typedef struct
+{    
+    bool                        is_init_done;
+    CAN_MODULE                  id;
+    CAN_BUS_SPEED               bus_speed;
+    _io_t                       chip_enable;
+    bool                        set_auto_bit_timing;
+    void                        **p_frames;
+    uint8_t                     number_of_frames;
+    uint64_t                    tick;
+} can_params_t;
+
+#define CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, _io_port, _io_indice, _p_frames, _number_of_frames)    \
+{                                                                                   \
+	.is_init_done = false,                                                          \
+    .id = _can_module,                                                              \
+    .bus_speed = _bus_speed,                                                        \
+    .chip_enable = { _io_port, _io_indice },                                        \
+    .set_auto_bit_timing = _set_auto_bit_timing,                                    \
+    .p_frames = (void *) _p_frames,                                                 \
+    .number_of_frames = _number_of_frames,                                          \
+    .tick = 0                                                                       \
+}
+
+#define CAN_DEF(_name, _can_module, _bus_speed, _set_auto_bit_timing, _chip_enable_pin, ...)                \
+static void * _name ## _p_can_frames_ram_allocation[COUNT_ARGUMENTS( __VA_ARGS__ )] = { __VA_ARGS__ };      \
+static can_params_t _name = CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, __PORT(_chip_enable_pin), __INDICE(_chip_enable_pin), _name ## _p_can_frames_ram_allocation, COUNT_ARGUMENTS( __VA_ARGS__ ))
+
+void can_tasks(can_params_t *var);
 
 void can_interrupt_handler(CAN_MODULE id);
 
 #endif
-    
+   

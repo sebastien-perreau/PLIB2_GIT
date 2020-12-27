@@ -53,7 +53,7 @@ static void __can_set_op_mode(CAN_MODULE id, CAN_OP_MODE op_mode)
 
 /*******************************************************************************
  * Function:
- *      static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed)
+ *      static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit_timing)
  * 
  * Overview:
  *      This function set the CxCFG register (used for the bus bit timing).
@@ -83,17 +83,17 @@ static void __can_set_op_mode(CAN_MODULE id, CAN_OP_MODE op_mode)
  *      6. Parameters are: BRP = 3, SEG2PH = 2, SEG1PH = 4, PRSEG = 2, SJW = 1, SAM = 1    
  * 
  * Input:
- *      id          - The CAN module to use
- *      bus_speed   - The CAN bus speed (125KBPS / 250KBPS / 500KBPS or 1MBPS)
- *      auto_calc   - Set this flag if you want to auto calculate the bus bit timing parameters.
- *                    Recommanded if SYSTEM_FREQUENCY != 80MHz and/or BUS_SPEED != 500KBPS.
+ *      id                      - The CAN module to use
+ *      bus_speed               - The CAN bus speed (125KBPS / 250KBPS / 500KBPS or 1MBPS)
+ *      set_auto_bit_timing     - Set this flag if you want to auto calculate the bus bit timing parameters.
+ *                                Recommanded if SYSTEM_FREQUENCY != 80MHz and/or BUS_SPEED != 500KBPS.
  * 
  * Output:
  *      none
  ******************************************************************************/
-static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool auto_calc)
+static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit_timing)
 {
-    if (!auto_calc)
+    if (!set_auto_bit_timing)
     {
         // This configuration has been established for a SYSTEM_FREQUENCY = 80MHz and BUS_SPEED = 500KBPS.    
         p_can_registers_array[id]->CANCFG.SEG2PHTS = 1;             // Phase seg 2 is freely programmable 
@@ -148,6 +148,16 @@ static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool auto_ca
         p_can_registers_array[id]->CANCFG.BRP = BRP;
         p_can_registers_array[id]->CANCFG.SAM = (BRP >= 2) ? 1 : 0; 
     }
+    
+//    LOG("Bus speed: %dKBPS / BRP: %d / N: %d / SAM: %d / SJW: %dTq / PRSEG: %dTq / SEG1PH: %dTq / SEG2PH: %dTq", 
+//            bus_speed, 
+//            p_can_registers_array[id]->CANCFG.BRP,
+//            (1+(p_can_registers_array[id]->CANCFG.PRSEG+1)+(p_can_registers_array[id]->CANCFG.SEG1PH+1)+(p_can_registers_array[id]->CANCFG.SEG2PH+1)),
+//            p_can_registers_array[id]->CANCFG.SAM,
+//            (p_can_registers_array[id]->CANCFG.SJW+1),
+//            (p_can_registers_array[id]->CANCFG.PRSEG+1),
+//            (p_can_registers_array[id]->CANCFG.SEG1PH+1),
+//            (p_can_registers_array[id]->CANCFG.SEG2PH+1));
 }
 
 static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, uint8_t channel_size, bool is_tx_channel, CAN_CHANNEL_EVENT channel_event)
@@ -185,7 +195,7 @@ static void __can_set_module_event(CAN_MODULE id, CAN_MODULE_EVENT module_event)
  * Output:
  *      none
  ******************************************************************************/
-void can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed)
+static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit_timing)
 {
     irq_init(IRQ_CAN1 + id, IRQ_ENABLED, irq_can_priority(id));
     
@@ -193,7 +203,7 @@ void can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed)
     
     __can_set_op_mode(id, CAN_OP_MODE_CONFIGURATION);
     
-    __can_set_speed(id, bus_speed, false);     
+    __can_set_speed(id, bus_speed, set_auto_bit_timing);     
     
     p_can_registers_array[id]->CANFIFOBA = _VirtToPhys(&can_fifo_ram_allocation[id][0]);
     
@@ -202,54 +212,77 @@ void can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed)
     
     __can_set_module_event(id, CAN_MODULE_EVENT_RX);
     
-    
-    
-    
-    
-    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.SID = 0x7ff;
-    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.MIDE = 0;
-    p_can_registers_array[id]->can_filter_mask_regs[CAN_MASK0].CANRXM.EID = 0;
-    
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.SID = 0x200;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.EID = 0;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER0].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
-    
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.SID = 0x201;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.EID = 0;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER1].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
-    
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.SID = 0x202;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.EID = 0;
-    p_can_registers_array[id]->can_rx_filter_regs[CAN_FILTER2].CANRXF.EXID = 0;     // 0: STD / 1: EXTENDED
-    
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].MSEL = CAN_MASK0;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].FSEL = CAN_CHANNEL1;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER0 / 4].CANFLTCON[CAN_FILTER0 % 4].FLTEN = ENABLE;
-    
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].MSEL = CAN_MASK0;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].FSEL = CAN_CHANNEL1;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER1 / 4].CANFLTCON[CAN_FILTER1 % 4].FLTEN = ENABLE;
-    
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].MSEL = CAN_MASK0;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].FSEL = CAN_CHANNEL1;
-    p_can_registers_array[id]->can_filter_control_regs[CAN_FILTER2 / 4].CANFLTCON[CAN_FILTER2 % 4].FLTEN = ENABLE;
-    
-    
-    
-    
-    
     __can_set_op_mode(id, CAN_OP_MODE_NORMAL);
-    
-//    LOG("Bus speed: %dKBPS / BRP: %d / N: %d / SAM: %d / SJW: %dTq / PRSEG: %dTq / SEG1PH: %dTq / SEG2PH: %dTq", 
-//            bus_speed, 
-//            p_can_registers_array[id]->CANCFG.BRP,
-//            (1+(p_can_registers_array[id]->CANCFG.PRSEG+1)+(p_can_registers_array[id]->CANCFG.SEG1PH+1)+(p_can_registers_array[id]->CANCFG.SEG2PH+1)),
-//            p_can_registers_array[id]->CANCFG.SAM,
-//            (p_can_registers_array[id]->CANCFG.SJW+1),
-//            (p_can_registers_array[id]->CANCFG.PRSEG+1),
-//            (p_can_registers_array[id]->CANCFG.SEG1PH+1),
-//            (p_can_registers_array[id]->CANCFG.SEG2PH+1));
 }
+
+void can_tasks(can_params_t *var)
+{
+    if (!var->is_init_done)
+    {
+        CAN_FILTER filter = CAN_FILTER0;
+        uint8_t j;
+        
+        __can_init(var->id, var->bus_speed, var->set_auto_bit_timing);
+        
+        if (var->chip_enable._port > 0)
+        {
+            ports_reset_pin_output(var->chip_enable);
+            ports_clr_bit(var->chip_enable);
+        }
+        
+        __can_set_op_mode(var->id, CAN_OP_MODE_CONFIGURATION);
+        
+        p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.SID = 0x7ff;
+        p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.MIDE = 0;
+        p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.EID = 0;
+        
+        for (j = 0 ; j < var->number_of_frames ; j++)
+        {
+            can_frame_params_t *p_frame = (can_frame_params_t *) var->p_frames[j];
+            
+            if (p_frame->read_write_type == CAN_READ_FRAME)
+            {   
+                p_can_registers_array[var->id]->can_rx_filter_regs[filter].CANRXF.SID = p_frame->frame.msg_sid.SID;
+                p_can_registers_array[var->id]->can_rx_filter_regs[filter].CANRXF.EID = p_frame->frame.msg_eid.EID;
+                p_can_registers_array[var->id]->can_rx_filter_regs[filter].CANRXF.EXID = p_frame->frame.msg_eid.IDE;
+
+                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (CAN_CHANNEL1 << 0);        
+                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (CAN_MASK0 << 5);
+                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (ENABLE << 7);
+
+                filter++;
+            }
+        }
+        
+        __can_set_op_mode(var->id, CAN_OP_MODE_NORMAL);
+        
+        mUpdateTick(var->tick);
+        var->is_init_done = true;
+    }
+    else
+    {        
+        uint8_t i;
+        
+        for (i = 0 ; i < var->number_of_frames ; i++)
+        {
+            can_frame_params_t *p_frame = (can_frame_params_t *) var->p_frames[i];
+            
+            if ((p_frame->read_write_type == CAN_WRITE_FRAME) && ((p_frame->force_transfer) || ((mTickCompare(p_frame->tick) >= p_frame->period) && (p_frame->period > 0))))
+            {
+                mUpdateTick(p_frame->tick);                
+                p_frame->force_transfer = false;                
+                can_message_buffer_t * free_transmit_message = (can_message_buffer_t *) _PhysToVirtK1(p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOUA);
+                memcpy(free_transmit_message, &p_frame->frame, sizeof(can_message_buffer_t));        
+                free_transmit_message->msg_data_0_3.v32 = 0x12345678;
+                p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00002000; // UINC
+                p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00000008; // TXREQ
+            }
+        }
+        
+    }
+}
+
+
 
 /*******************************************************************************
  * Function:
