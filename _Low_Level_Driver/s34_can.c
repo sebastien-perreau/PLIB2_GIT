@@ -23,6 +23,7 @@ static can_registers_t * p_can_registers_array[] =
 };
 
 static uint8_t can_fifo_ram_allocation[CAN_NUMBER_OF_MODULES][CAN_SIZE_FIFO_RAM_ALLOCATION];
+static can_params_t * p_can_params[CAN_NUMBER_OF_MODULES];
 
 /*******************************************************************************
  * Function:
@@ -160,6 +161,19 @@ static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_aut
 //            (p_can_registers_array[id]->CANCFG.SEG2PH+1));
 }
 
+/*******************************************************************************
+ * Function:
+ *      
+ * 
+ * Overview:
+ *      
+ * 
+ * Input:
+ *      none
+ * 
+ * Output:
+ *      none
+ ******************************************************************************/
 static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, uint8_t channel_size, bool is_tx_channel, CAN_CHANNEL_EVENT channel_event)
 {
     p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOCON.FSIZE = (channel_size > 31) ? 31 : channel_size;
@@ -177,6 +191,19 @@ static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, 
     }
 }
 
+/*******************************************************************************
+ * Function:
+ *      
+ * 
+ * Overview:
+ *      
+ * 
+ * Input:
+ *      none
+ * 
+ * Output:
+ *      none
+ ******************************************************************************/
 static void __can_set_module_event(CAN_MODULE id, CAN_MODULE_EVENT module_event)
 {
     p_can_registers_array[id]->CANINT.v32 = ((uint32_t) module_event << 16);
@@ -208,13 +235,26 @@ static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit
     p_can_registers_array[id]->CANFIFOBA = _VirtToPhys(&can_fifo_ram_allocation[id][0]);
     
     __can_configure_fifo_channel(id, CAN_CHANNEL0, 32, CAN_FIFOCON_FIFO_IS_TRANSMIT, 0); // FIFO channel0 for TX (32 messages deep)
-    __can_configure_fifo_channel(id, CAN_CHANNEL1, 32, CAN_FIFOCON_FIFO_IS_RECEIVE, (CAN_CHANNEL_EVENT_RX_NOT_EMPTY | CAN_CHANNEL_EVENT_RX_FULL));  // FIFO channel1 for RX (32 messages deep)
+    __can_configure_fifo_channel(id, CAN_CHANNEL1, 32, CAN_FIFOCON_FIFO_IS_RECEIVE, CAN_CHANNEL_EVENT_RX_NOT_EMPTY);  // FIFO channel1 for RX (32 messages deep)
     
     __can_set_module_event(id, CAN_MODULE_EVENT_RX);
     
     __can_set_op_mode(id, CAN_OP_MODE_NORMAL);
 }
 
+/*******************************************************************************
+ * Function:
+ *      
+ * 
+ * Overview:
+ *      
+ * 
+ * Input:
+ *      none
+ * 
+ * Output:
+ *      none
+ ******************************************************************************/
 void can_tasks(can_params_t *var)
 {
     if (!var->is_init_done)
@@ -222,6 +262,8 @@ void can_tasks(can_params_t *var)
         CAN_FILTER filter = CAN_FILTER0;
         uint8_t j;
         
+        p_can_params[var->id] = var;
+
         __can_init(var->id, var->bus_speed, var->set_auto_bit_timing);
         
         if (var->chip_enable._port > 0)
@@ -234,7 +276,7 @@ void can_tasks(can_params_t *var)
         
         p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.SID = 0x7ff;
         p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.MIDE = 0;
-        p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.EID = 0;
+        p_can_registers_array[var->id]->can_filter_mask_regs[CAN_MASK0].CANRXM.EID = 0x3ffff;
         
         for (j = 0 ; j < var->number_of_frames ; j++)
         {
@@ -265,24 +307,20 @@ void can_tasks(can_params_t *var)
         
         for (i = 0 ; i < var->number_of_frames ; i++)
         {
-            can_frame_params_t *p_frame = (can_frame_params_t *) var->p_frames[i];
-            
+            can_frame_params_t *p_frame = (can_frame_params_t *) var->p_frames[i];            
             if ((p_frame->read_write_type == CAN_WRITE_FRAME) && ((p_frame->force_transfer) || ((mTickCompare(p_frame->tick) >= p_frame->period) && (p_frame->period > 0))))
             {
                 mUpdateTick(p_frame->tick);                
                 p_frame->force_transfer = false;                
                 can_message_buffer_t * free_transmit_message = (can_message_buffer_t *) _PhysToVirtK1(p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOUA);
-                memcpy(free_transmit_message, &p_frame->frame, sizeof(can_message_buffer_t));        
-                free_transmit_message->msg_data_0_3.v32 = 0x12345678;
+                memcpy(free_transmit_message, &p_frame->frame, sizeof(can_message_buffer_t));                        
                 p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00002000; // UINC
-                p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00000008; // TXREQ
+                p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00000008; // TXREQ                
             }
-        }
+        }        
         
     }
 }
-
-
 
 /*******************************************************************************
  * Function:
@@ -299,5 +337,27 @@ void can_tasks(can_params_t *var)
  ******************************************************************************/
 void can_interrupt_handler(CAN_MODULE id)
 {
-    
+    if (p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOINT.RXNEMPTYIF)
+    {
+        uint8_t i;
+        
+        can_message_buffer_t * free_receive_message = (can_message_buffer_t *) _PhysToVirtK1(p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOUA);
+        for (i = 0 ; i < p_can_params[id]->number_of_frames ; i++)
+        {
+            can_frame_params_t *p_frame = (can_frame_params_t *) p_can_params[id]->p_frames[i];                
+            if (p_frame->read_write_type == CAN_READ_FRAME)
+            {
+                if (    (p_frame->frame.msg_sid.SID == free_receive_message->msg_sid.SID) &&
+                        (p_frame->frame.msg_eid.DLC == free_receive_message->msg_eid.DLC) &&
+                        (p_frame->frame.msg_eid.EID == free_receive_message->msg_eid.EID) &&
+                        (p_frame->frame.msg_eid.IDE == free_receive_message->msg_eid.IDE))
+                    {
+                        memcpy(&p_frame->frame, free_receive_message, sizeof(can_message_buffer_t));
+                        p_frame->is_receive_updated = true;
+                        break;
+                    }
+            }
+        }       
+        p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOCONSET = 0x00002000; // UINC
+    }       
 }
