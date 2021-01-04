@@ -22,7 +22,6 @@ static can_registers_t * p_can_registers_array[] =
     (can_registers_t *) &C2CON
 };
 
-static uint8_t can_fifo_ram_allocation[CAN_NUMBER_OF_MODULES][CAN_SIZE_FIFO_RAM_ALLOCATION];
 static can_params_t * p_can_params[CAN_NUMBER_OF_MODULES];
 
 /*******************************************************************************
@@ -232,7 +231,7 @@ static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit
     
     __can_set_speed(id, bus_speed, set_auto_bit_timing);     
     
-    p_can_registers_array[id]->CANFIFOBA = _VirtToPhys(&can_fifo_ram_allocation[id][0]);
+    p_can_registers_array[id]->CANFIFOBA = _VirtToPhys(p_can_params[id]->p_fifo);
     
     __can_configure_fifo_channel(id, CAN_CHANNEL0, 32, CAN_FIFOCON_FIFO_IS_TRANSMIT, 0); // FIFO channel0 for TX (32 messages deep)
     __can_configure_fifo_channel(id, CAN_CHANNEL1, 32, CAN_FIFOCON_FIFO_IS_RECEIVE, CAN_CHANNEL_EVENT_RX_NOT_EMPTY);  // FIFO channel1 for RX (32 messages deep)
@@ -244,13 +243,16 @@ static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit
 
 /*******************************************************************************
  * Function:
- *      
+ *      void can_tasks(can_params_t *var)
  * 
  * Overview:
- *      
+ *      This routine should be placed in the main while loop and should be executed
+ *      as often as possible. Firstly, it configures the CAN module and then manage 
+ *      all TX frames. 
  * 
  * Input:
- *      none
+ *      var         - The can_params_t pointer (this is the can bus variable created
+ *                  in CAN_DEF(...)).
  * 
  * Output:
  *      none
@@ -322,13 +324,15 @@ void can_tasks(can_params_t *var)
 
 /*******************************************************************************
  * Function:
- *      
+ *      void can_interrupt_handler(CAN_MODULE id)
  * 
  * Overview:
- *      
+ *      This routine is called when an interruption occur. All data (16 bytes)
+ *      is received and transferred from RAM (fifo_ram_allocation) to variable's user.
+ *      The frame has a status flag "is_receive_updated" to indicate a new reception. 
  * 
  * Input:
- *      none
+ *      id          - The CAN module which generates the interruption.
  * 
  * Output:
  *      none

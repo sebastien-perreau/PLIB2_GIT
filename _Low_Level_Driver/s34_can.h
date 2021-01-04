@@ -7,7 +7,7 @@
  * 
  * Up to 32 FIFOs channels, each contains 1 .. 32 Message Buffer. 1 Message buffer can be 8 or 16 bytes length.
  */
-#define CAN_SIZE_FIFO_RAM_ALLOCATION (2 * 32 * 16)   // Allocation of 2 FIFOs, each 16 Message Buffer deep of 16 bytes.
+#define CAN_SIZE_FIFO_RAM_ALLOCATION (2 * 32 * 16)   // Allocation of 2 FIFOs, each 32 Message Buffer deep of 16 bytes.
 
 typedef enum
 {
@@ -674,18 +674,20 @@ typedef struct
     CAN_BUS_SPEED               bus_speed;
     _io_t                       chip_enable;
     bool                        set_auto_bit_timing;
+    uint8_t                     *p_fifo;
     void                        **p_frames;
     uint8_t                     number_of_frames;
     uint64_t                    tick;
 } can_params_t;
 
-#define CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, _io_port, _io_indice, _p_frames, _number_of_frames)    \
+#define CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, _io_port, _io_indice, _p_fifo, _p_frames, _number_of_frames)    \
 {                                                                                   \
 	.is_init_done = false,                                                          \
     .id = _can_module,                                                              \
     .bus_speed = _bus_speed,                                                        \
     .chip_enable = { _io_port, _io_indice },                                        \
     .set_auto_bit_timing = _set_auto_bit_timing,                                    \
+    .p_fifo = _p_fifo,                                                              \
     .p_frames = (void *) _p_frames,                                                 \
     .number_of_frames = _number_of_frames,                                          \
     .tick = 0                                                                       \
@@ -693,7 +695,8 @@ typedef struct
 
 #define CAN_DEF(_name, _can_module, _bus_speed, _set_auto_bit_timing, _chip_enable_pin, ...)                \
 static void * _name ## _p_can_frames_ram_allocation[COUNT_ARGUMENTS( __VA_ARGS__ )] = { __VA_ARGS__ };      \
-static can_params_t _name = CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, __PORT(_chip_enable_pin), __INDICE(_chip_enable_pin), _name ## _p_can_frames_ram_allocation, COUNT_ARGUMENTS( __VA_ARGS__ ))
+static uint8_t _name ## _p_can_fifo_ram_allocation[CAN_SIZE_FIFO_RAM_ALLOCATION] = { 0 };                   \
+static can_params_t _name = CAN_PARAMS_INSTANCE(_can_module, _bus_speed, _set_auto_bit_timing, __PORT(_chip_enable_pin), __INDICE(_chip_enable_pin), _name ## _p_can_fifo_ram_allocation, _name ## _p_can_frames_ram_allocation, COUNT_ARGUMENTS( __VA_ARGS__ ))
 
 void can_tasks(can_params_t *var);
 
