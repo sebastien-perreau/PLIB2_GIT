@@ -579,6 +579,7 @@ typedef union
         unsigned                        EID:18;         // Extended Identifier bits
         unsigned                        IDE:1;          // Extended Identifier bit (1 = Message will transmit extended identifier / 0 = Message will transmit standard identifier)
         unsigned                        SRR:1;          // Substitute Remote Request bit (In case of a standard message format (IDE = 0), this bit is don?t care. / In case of an extended message format (IDE = 1), this bit should always be set.)
+        unsigned                        :2;
     };
     struct 
     {
@@ -636,12 +637,18 @@ typedef struct
     uint64_t                    tick;
 } can_frame_params_t;
 
-#define CAN_MESSAGE_BUFFER_INSTANCE(_id, _extended_id, _data_length)                \
-{                                                                                   \
-	.msg_sid.SID = (_id & 0x7ff),                                                   \
-    .msg_eid = {_data_length, 0, 0, 0, (_id >> 11), _extended_id, _extended_id}, \
-    .msg_data_0_3 = 0,                                                   \
-    .msg_data_4_7 = 0,                                                   \
+#define CAN_MESSAGE_BUFFER_INSTANCE(_id, _extended_id, _data_length)    \
+{                                                                       \
+	.msg_sid.SID = _extended_id ? ((_id >> 18) & 0x7ff) : (_id & 0x7ff),\
+    .msg_eid.DLC = _data_length,                                        \
+    .msg_eid.RB0 = 0,                                                   \
+    .msg_eid.RB1 = 0,                                                   \
+    .msg_eid.RTR = 0,                                                   \
+    .msg_eid.EID = _extended_id ? (_id & 0x3ffff) : 0,                  \
+    .msg_eid.IDE = _extended_id,                                        \
+    .msg_eid.SRR = 0,                                                   \
+    .msg_data_0_3 = 0,                                                  \
+    .msg_data_4_7 = 0                                                   \
 }
 
 #define CAN_FRAME_INSTANCE(_read_write_type, _id, _extended_id, _data_length, _period)      \

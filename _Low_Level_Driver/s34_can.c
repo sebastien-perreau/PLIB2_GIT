@@ -176,8 +176,8 @@ static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_aut
  ******************************************************************************/
 static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, uint8_t channel_size, bool is_tx_channel, CAN_CHANNEL_EVENT channel_event)
 {
-    p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOCON.FSIZE = (channel_size > 31) ? 31 : channel_size;
-    p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOINT.v32 = ((uint32_t) channel_event << 16);
+    p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOCON.FSIZE = ((channel_size - 1) > 31) ? 31 : (channel_size - 1);
+    p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOINTSET = ((uint32_t) channel_event << 16);
     if (is_tx_channel == CAN_FIFOCON_FIFO_IS_TRANSMIT)
     {
         p_can_registers_array[id]->can_fifo_regs[channel_id].CANFIFOCON.TXEN = CAN_FIFOCON_FIFO_IS_TRANSMIT;                // FIFO channel configure as TX
@@ -288,9 +288,7 @@ void can_tasks(can_params_t *var)
                 p_can_registers_array[var->id]->can_rx_filter_regs[filter].CANRXF.EID = p_frame->frame.msg_eid.EID;
                 p_can_registers_array[var->id]->can_rx_filter_regs[filter].CANRXF.EXID = p_frame->frame.msg_eid.IDE;
 
-                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (CAN_CHANNEL1 << 0);        
-                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (CAN_MASK0 << 5);
-                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (ENABLE << 7);
+                p_can_registers_array[var->id]->can_filter_control_regs[filter / 4].CANFLTCON[filter % 4] = (ENABLE << 7) | (CAN_MASK0 << 5) | (CAN_CHANNEL1 << 0);
 
                 filter++;
             }
@@ -317,7 +315,7 @@ void can_tasks(can_params_t *var)
                 p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00002000; // UINC
                 p_can_registers_array[var->id]->can_fifo_regs[CAN_CHANNEL0].CANFIFOCONSET = 0x00000008; // TXREQ                
             }
-        }        
+        }
         
     }
 }
@@ -342,13 +340,13 @@ void can_interrupt_handler(CAN_MODULE id)
         uint8_t i;
         
         can_message_buffer_t * free_receive_message = (can_message_buffer_t *) _PhysToVirtK1(p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOUA);
+
         for (i = 0 ; i < p_can_params[id]->number_of_frames ; i++)
         {
             can_frame_params_t *p_frame = (can_frame_params_t *) p_can_params[id]->p_frames[i];                
             if (p_frame->read_write_type == CAN_READ_FRAME)
             {
                 if (    (p_frame->frame.msg_sid.SID == free_receive_message->msg_sid.SID) &&
-                        (p_frame->frame.msg_eid.DLC == free_receive_message->msg_eid.DLC) &&
                         (p_frame->frame.msg_eid.EID == free_receive_message->msg_eid.EID) &&
                         (p_frame->frame.msg_eid.IDE == free_receive_message->msg_eid.IDE))
                     {
@@ -358,6 +356,6 @@ void can_interrupt_handler(CAN_MODULE id)
                     }
             }
         }       
-        p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOCONSET = 0x00002000; // UINC
-    }       
+        p_can_registers_array[id]->can_fifo_regs[CAN_CHANNEL1].CANFIFOCONSET = 0x00002000; // UINC        
+    }
 }
