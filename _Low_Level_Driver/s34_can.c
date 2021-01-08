@@ -16,6 +16,8 @@
 
 #include "../PLIB2.h"
 
+#warning "s34_can.c - Maximum of 32 Tx frames & 32 Rx frames (automatic filter for Rx)"
+
 static can_registers_t * p_can_registers_array[] =
 {
     (can_registers_t *) &C1CON,
@@ -162,13 +164,20 @@ static void __can_set_speed(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_aut
 
 /*******************************************************************************
  * Function:
- *      
+ *      static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, uint8_t channel_size, bool is_tx_channel, CAN_CHANNEL_EVENT channel_event)
  * 
  * Overview:
- *      
+ *      This routine is used to configure a FIFO channel. There are up to 32 FIFO channels available.
+ *      In this driver, we are using 2 FIFO channels of 32 messages deep each. Channel 0 is used for the Tx frames
+ *      and channel 1 is used for Rx frames. 
  * 
  * Input:
- *      none
+ *      id              - The CAN module.
+ *      channel_id      - The CAN channel to configure (0..31) (see CAN_CHANNEL).
+ *      channel_size    - The message deep (1..32).
+ *      is_tx_channel   - The type of message associated with the channel (either TRANSMIT or RECEIVE) (see CAN_FIFOCON_REG).
+ *      channel_event   - The type of event(s) associated to the channel. (see CAN_CHANNEL_EVENT). 
+ *                        More detail on "can_interrupt_handler" below. We check the flag of the Rx channel.
  * 
  * Output:
  *      none
@@ -192,13 +201,16 @@ static void __can_configure_fifo_channel(CAN_MODULE id, CAN_CHANNEL channel_id, 
 
 /*******************************************************************************
  * Function:
- *      
+ *      static void __can_set_module_event(CAN_MODULE id, CAN_MODULE_EVENT module_event)
  * 
  * Overview:
- *      
+ *      This routine is used to set the type of event(s) wishes for the CAN module.
+ *      If CAN_IRQ is enable then this is the module_event which defines the type of
+ *      interruption.
  * 
  * Input:
- *      none
+ *      id              - The CAN module.
+ *      module_event    - The type of event(s) wishes for the CAN module (see CAN_MODULE_EVENT).
  * 
  * Output:
  *      none
@@ -210,13 +222,23 @@ static void __can_set_module_event(CAN_MODULE id, CAN_MODULE_EVENT module_event)
 
 /*******************************************************************************
  * Function:
- *      
+ *      static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit_timing)
  * 
  * Overview:
- *      
+ *      This routine is used to initialize the CAN module. 
+ *      It configures:
+ *          + The CAN IRQ and priorities.
+ *          + The CAN bit timing.
+ *          + The RAM allocation for the FIFO channels (one CAN module used 2 x 32 x 16 bytes). The CAN module uses device RAM for storing CAN messages that need to be transmitted or received.
+ *          + The fifo channels (CHANNEL_0 for transmission - 32 messages deep / CHANNEL_1 for reception - 32 messages deep).
+ *          + The type of event(s) for the CAN module (we want interruptions on Rx events only).
  * 
  * Input:
- *      none
+ *      id                  - The CAN module to initialize.
+ *      bus_speed           - The CAN bus speed (see CAN_BUS_SPEED enumeration).
+ *      set_auto_bit_timing - This flag is used to enable the driver to calculate
+ *                          the best CAN bit timing parameters in function of the 
+ *                          SYSTEM_FREQUENCY and BUS_SPEED.
  * 
  * Output:
  *      none
@@ -248,7 +270,10 @@ static void __can_init(CAN_MODULE id, CAN_BUS_SPEED bus_speed, bool set_auto_bit
  * Overview:
  *      This routine should be placed in the main while loop and should be executed
  *      as often as possible. Firstly, it configures the CAN module and then manage 
- *      all TX frames. 
+ *      all TX frames. Rx frames are automatically manage in the interrupt handler
+ *      (only Rx frames which are been define). 
+ *      Filters are used for Rx frames. Thus it limits the call of interrupt handler
+ *      if there are a lot of frames on the CAN bus. 
  * 
  * Input:
  *      var         - The can_params_t pointer (this is the can bus variable created

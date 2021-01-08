@@ -26,6 +26,7 @@ void _EXAMPLE_PCA9685();
 void _EXAMPLE_AT42QT2120();
 void _EXAMPLE_VEML7700();
 void _EXAMPLE_BLE(ble_pickit_t * p_ble);
+void _EXAMPLE_CAN();
 void _EXAMPLE_LIN();
 void _EXAMPLE_PINK_LADY();
 void _EXAMPLE_TPS92662();
