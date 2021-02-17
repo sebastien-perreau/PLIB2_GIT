@@ -1,6 +1,6 @@
 /*********************************************************************
  *	External TPS92662
- *	Author : Sébastien PERREAU
+ *	Author : Sï¿½bastien PERREAU
  *
  *	Revision history	:
  *		02/05/2019		- Initial release
@@ -524,7 +524,7 @@ static uint8_t e_tps92662_request(TPS92662_PARAMS *var, TPS92662_INIT_PARAM cde_
             {
                 (*p_fct_write)(var, device_index, &var->p_transfer[3]);
                 
-                crc_calc = crc_16(var->p_transfer, 3 + tps92662_init_param_number_of_bytes[cde_type]);
+                crc_calc = crc_16_arc(var->p_transfer, 3 + tps92662_init_param_number_of_bytes[cde_type]);
                 var->p_transfer[3 + tps92662_init_param_number_of_bytes[cde_type]] = (crc_calc >> 0) & 0xff;
                 var->p_transfer[4 + tps92662_init_param_number_of_bytes[cde_type]] = (crc_calc >> 8) & 0xff;
                 
@@ -533,7 +533,7 @@ static uint8_t e_tps92662_request(TPS92662_PARAMS *var, TPS92662_INIT_PARAM cde_
             }
             else
             {
-                crc_calc = crc_16(var->p_transfer, 3);
+                crc_calc = crc_16_arc(var->p_transfer, 3);
                 var->p_transfer[3] = (crc_calc >> 0) & 0xff;
                 var->p_transfer[4] = (crc_calc >> 8) & 0xff;
                 
@@ -556,7 +556,7 @@ static uint8_t e_tps92662_request(TPS92662_PARAMS *var, TPS92662_INIT_PARAM cde_
             {
                 if (p_fct_read != NULL)
                 {
-                    crc_calc = crc_16(&var->p_receip[5], tps92662_init_param_number_of_bytes[cde_type]);
+                    crc_calc = crc_16_arc(&var->p_receip[5], tps92662_init_param_number_of_bytes[cde_type]);
                     crc_uart = (var->p_receip[5 + tps92662_init_param_number_of_bytes[cde_type]] << 0) + (var->p_receip[5 + tps92662_init_param_number_of_bytes[cde_type] + 1] << 8);
                     if (crc_calc == crc_uart)
                     {

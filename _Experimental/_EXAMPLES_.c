@@ -1707,51 +1707,51 @@ void _EXAMPLE_TPS92662()
             e_tps92662_set_width(tps_pix32_module1, 0, 10, 0);
             e_tps92662_set_width(tps_pix32_module1, 0, 11, 1023);
             
-            e_tps92662_set_width(tps_pix32_module1, 1, 0, 10);
-            e_tps92662_set_width(tps_pix32_module1, 1, 1, 20);
-            e_tps92662_set_width(tps_pix32_module1, 1, 2, 30);
-            e_tps92662_set_width(tps_pix32_module1, 1, 3, 40);
-            e_tps92662_set_width(tps_pix32_module1, 1, 4, 50);
-            e_tps92662_set_width(tps_pix32_module1, 1, 5, 60);
-            e_tps92662_set_width(tps_pix32_module1, 1, 6, 70);
-            e_tps92662_set_width(tps_pix32_module1, 1, 7, 80);
-            e_tps92662_set_width(tps_pix32_module1, 1, 8, 90);
-            e_tps92662_set_width(tps_pix32_module1, 1, 9, 100);
-            e_tps92662_set_width(tps_pix32_module1, 1, 10, 110);
-            e_tps92662_set_width(tps_pix32_module1, 1, 11, 120);
-            
-            e_tps92662_set_width(tps_pix32_module1, 2, 0, 810);
-            e_tps92662_set_width(tps_pix32_module1, 2, 1, 820);
-            e_tps92662_set_width(tps_pix32_module1, 2, 2, 830);
-            e_tps92662_set_width(tps_pix32_module1, 2, 3, 840);
-            e_tps92662_set_width(tps_pix32_module1, 2, 4, 850);
-            e_tps92662_set_width(tps_pix32_module1, 2, 5, 860);
-            e_tps92662_set_width(tps_pix32_module1, 2, 6, 870);
-            e_tps92662_set_width(tps_pix32_module1, 2, 7, 880);
-            e_tps92662_set_width(tps_pix32_module1, 2, 8, 890);
-            e_tps92662_set_width(tps_pix32_module1, 2, 9, 900);
-            e_tps92662_set_width(tps_pix32_module1, 2, 10, 910);
-            e_tps92662_set_width(tps_pix32_module1, 2, 11, 920);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 0, 10);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 1, 20);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 2, 30);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 3, 40);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 4, 50);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 5, 60);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 6, 70);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 7, 80);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 8, 90);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 9, 100);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 10, 110);
+//            e_tps92662_set_width(tps_pix32_module1, 1, 11, 120);
+//            
+//            e_tps92662_set_width(tps_pix32_module1, 2, 0, 810);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 1, 820);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 2, 830);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 3, 840);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 4, 850);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 5, 860);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 6, 870);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 7, 880);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 8, 890);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 9, 900);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 10, 910);
+//            e_tps92662_set_width(tps_pix32_module1, 2, 11, 920);
             
             if (!e_tps92662_deamon(&tps_pix32_module1))
             {
                 e_tps92662_send_phases_and_widths(tps_pix32_module1, 0);
-                e_tps92662_send_phases_and_widths(tps_pix32_module1, 1);
-                e_tps92662_send_phases_and_widths(tps_pix32_module1, 2);            
+//                e_tps92662_send_phases_and_widths(tps_pix32_module1, 1);
+//                e_tps92662_send_phases_and_widths(tps_pix32_module1, 2);            
             }
             
-            if (mTickCompare(sm_example.tick) >= TICK_20MS)
-            {
-                sm_example.tick = mGetTick();
-
-                e_tps92662_get_errors(tps_pix32_module1, 0);
-                e_tps92662_get_errors(tps_pix32_module1, 1);
-                e_tps92662_get_errors(tps_pix32_module1, 2);
-
-                e_tps92662_get_adc(tps_pix32_module1, 0);
-                e_tps92662_get_adc(tps_pix32_module1, 1);
-                e_tps92662_get_adc(tps_pix32_module1, 2);
-            } 
+//            if (mTickCompare(sm_example.tick) >= TICK_20MS)
+//            {
+//                sm_example.tick = mGetTick();
+//
+//                e_tps92662_get_errors(tps_pix32_module1, 0);
+//                e_tps92662_get_errors(tps_pix32_module1, 1);
+//                e_tps92662_get_errors(tps_pix32_module1, 2);
+//
+//                e_tps92662_get_adc(tps_pix32_module1, 0);
+//                e_tps92662_get_adc(tps_pix32_module1, 1);
+//                e_tps92662_get_adc(tps_pix32_module1, 2);
+//            } 
                         
             break;
     } 
